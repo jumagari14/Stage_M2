@@ -1,15 +1,18 @@
 #!/bin/bash
 
-currentD=$(pwd)
+lines=$(($1*$2))
 
-mkdir -p -m 755 Stage\ M2/test_data
+
+currentD=$(readlink -f $3)
+
+mkdir -p -m 755 "$currentD"/test_data
 
 list=$(find $currentD -name "*.fastq.*")
 
 for i in $list 
 do 
     filename=$(echo "$i" | rev | cut -d "/" -f 1 | rev)
-    zcat "$i" | head -$1 > Stage\ M2/test_data/"$filename"
+    zcat "$i" | head -$lines > "$currentD"/test_data/"$filename"
 done 
 
 exit 0 
