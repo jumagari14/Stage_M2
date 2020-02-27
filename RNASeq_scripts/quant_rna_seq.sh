@@ -34,12 +34,9 @@ echo "#############################"
 #############################
 
 ## Load necessary modules
-module load R/3.5.0 
 module load jdk1.8/8u22
 
 export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/contrib/apps/gcc/7.3.0/lib
-
-## java -jar Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 1 -phred33 /media/jumagari/JUANMA/Stage/Galaxy_An/subdata/TAB0.3_1.fq /media/jumagari/JUANMA/Stage/Galaxy_An/subdata/TAB0.3_2.fq forw_par.gq.gz forw_unp.fq.gz rev_pair.fq.gz rev_unp.fq.gz ILLUMINACLIP:./Trimmomatic-0.39/adapters/TruSeq2-PE.fa:2:30:10 LEADING:25 TRAILING:25 SLIDINGWINDOW:5:20 MINLEN:50
 
 # list=$(ls subdata/*fq.gz | xargs -n 1 basename | sed 's/\(.*\)_.*/\1/' | sort -u)
 
@@ -73,12 +70,13 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/con
 
 #     #FastQC/fastqc subdata/"$I"_1.fq subdata/"$I"_2.fq --outdir=trimm_data/quality
 
-#     # java -jar ./Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 16 -phred33 ./subdata/"$I"_1.fq.gz ./subdata/"$I"_2.fq.gz trimm_data/"$I"_1.par.fq.gz "$I"_1.unp.fq.gz trimm_data/"$I"_2.par.fq.gz "$I"_2.unp.fq.gz ILLUMINACLIP:Trimmomatic-0.39/adapters/TruSeq2-PE.fa:2:30:10 LEADING:25 TRAILING:25 SLIDINGWINDOW:5:20 MINLEN:50
+#     # java -jar ./Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 128 -phred33 ./subdata/"$I"_1.fq.gz ./subdata/"$I"_2.fq.gz trimm_data/"$I"_1.par.fq.gz "$I"_1.unp.fq.gz trimm_data/"$I"_2.par.fq.gz "$I"_2.unp.fq.gz ILLUMINACLIP:Trimmomatic-0.39/adapters/TruSeq2-PE.fa:2:30:10 LEADING:25 TRAILING:25 SLIDINGWINDOW:5:20 MINLEN:50
 
 #     # rm -rf "$I"_1.unp.fq.gz "$I"_2.unp.fq.gz
-
-#     ./STAR \
-#     --runThreadN 16 \
+#./scripts/STAR --genomeLoad LoadAndExit --genomeDir ./bin/genome_ind
+## Load genome just once to save RAM memory 
+#     ./STAR \ --runThreadN 128 --genomeLoad NoSharedMemory --readFilesIn  --outSAMtype BAM SortedByCoordinate --twopassMode None --quantMode - --outSAMstrandField intronMotif --outSAMattrIHstart 1 --outSAMattributes NH HI AS nM NM MD MC jM jI ch --outSAMprimaryFlag OneBestScore --outSAMmapqUnique 60 --outSAMunmapped Within --outFilterType Normal --outFilterMultimapScoreRange 1 --outFilterMultimapNmax 10 --outFilterMismatchNmax 10 --outFilterMismatchNoverLmax 0.3 --outFilterMismatchNoverReadLmax 1.0 --outFilterScoreMin 0 --outFilterScoreMinOverLread 0.66 --outFilterMatchNmin 0 --outFilterMatchNminOverLread 0.66 --outSAMmultNmax -1 --outSAMtlen 1 --outBAMsortingThreadN 10 --outBAMsortingBinsN 50 --limitBAMsortRAM 143360000000
+#     --runThreadN 128 \
 #     --runMode alignReads \
 #     --outFilterMatchNmin 16 \
 #     --readFilesCommand zcat \
@@ -100,4 +98,4 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/con
 #     STAR_Align/"$I"Aligned.out.bam 
 # done
 
-STAR --runThreadN 10 --genomeLoad NoSharedMemory --genomeDir tempstargenomedir --readFilesIn /data/dnb02/galaxy_db/files/013/734/dataset_13734635.dat /data/dnb02/galaxy_db/files/013/734/dataset_13734637.dat --outSAMtype BAM SortedByCoordinate --twopassMode None --quantMode - --outSAMstrandField intronMotif --outSAMattrIHstart 1 --outSAMattributes NH HI AS nM NM MD MC jM jI ch --outSAMprimaryFlag OneBestScore --outSAMmapqUnique 60 --outSAMunmapped Within --outFilterType Normal --outFilterMultimapScoreRange 1 --outFilterMultimapNmax 10 --outFilterMismatchNmax 10 --outFilterMismatchNoverLmax 0.3 --outFilterMismatchNoverReadLmax 1.0 --outFilterScoreMin 0 --outFilterScoreMinOverLread 0.66 --outFilterMatchNmin 0 --outFilterMatchNminOverLread 0.66 --outSAMmultNmax -1 --outSAMtlen 1 --outBAMsortingThreadN 10 --outBAMsortingBinsN 50 --limitBAMsortRAM 143360000000
+STAR 
