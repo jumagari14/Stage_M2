@@ -4,14 +4,14 @@
 # les directives Slurm vont ici:
 
 # Your job name (displayed by the queue)
-#SBATCH -J RNA-Seq analysis
+#SBATCH -J TPM
 
 # walltime (hh:mm::ss)
-#SBATCH -t 02:00:00
+#SBATCH -t 00:20:00
 
 # Specify the number of nodes(nodes=) and the number of cores per nodes(tasks-pernode=) to be used
 #SBATCH -N 4
-#SBATCH --tasks-per-node=32
+#SBATCH --tasks-per-node=4
 
 # change working directory
 # SBATCH --chdir=.
@@ -35,9 +35,10 @@ echo "#############################"
 
 ## Load necessary modules
 module load jdk1.8/8u22
+module load python/3.7.2 
 
 export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/contrib/apps/gcc/7.3.0/lib
-
+export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/python/3.7.2/bin/python3.7/lib/libpython3.7m.so:$LD_LIBRARY_PATH
 # list=$(ls subdata/*fq.gz | xargs -n 1 basename | sed 's/\(.*\)_.*/\1/' | sort -u)
 
 # # mkdir -p -m 755 trimm_data 
@@ -98,4 +99,9 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/con
 #     STAR_Align/"$I"Aligned.out.bam 
 # done
 
-STAR 
+#STAR
+
+## Check for installed modules 
+
+mkdir -p -m 755 tpm  
+python3 fpkm.py -d fpkm/
