@@ -11,8 +11,8 @@ list=$(find $currentD -name "*.fastq.*")
 
 for i in $list 
 do 
-    filename=$(echo "$i" | rev | cut -d "/" -f 1 | rev)
-    zcat "$i" | head -$lines > "$currentD"/test_data/"$filename"
+    filename=$(echo "$i" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1)
+    gzip -dc "$i" | cat | head -$lines > "$currentD"/test_data/"$filename".fq
 done 
 
 exit 0 
