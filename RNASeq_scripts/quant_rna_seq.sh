@@ -11,7 +11,7 @@
 
 # Specify the number of nodes(nodes=) and the number of cores per nodes(tasks-pernode=) to be used
 #SBATCH -N 4
-#SBATCH --tasks-per-node=4
+#SBATCH --tasks-per-node=32
 
 # change working directory
 # SBATCH --chdir=.
@@ -103,5 +103,7 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/python/3.7.2/bin/python3.7/lib/l
 
 ## Check for installed modules 
 
-mkdir -p -m 755 tpm  
-python3 fpkm.py -d fpkm/
+ 
+python3.6 fpkm.py -d "$1"/fpkm/
+
+python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"
