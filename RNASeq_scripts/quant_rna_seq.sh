@@ -106,7 +106,7 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/python/3.7.2/bin/python3.7/lib/l
  
 ##python3.6 fpkm.py -d "$1"/fpkm/
 
-##python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"""
+##python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"
 
 cd "$1"; 
 
@@ -134,3 +134,5 @@ do
 done 
 
 rm count_ind temp 
+
+exit 0 
