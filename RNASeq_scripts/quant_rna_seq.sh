@@ -104,6 +104,33 @@ export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/python/3.7.2/bin/python3.7/lib/l
 ## Check for installed modules 
 
  
-python3.6 fpkm.py -d "$1"/fpkm/
+##python3.6 fpkm.py -d "$1"/fpkm/
 
-python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"
+##python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"""
+
+cd "$1"; 
+
+files=$(find Conc/ -type f | sort)
+files=$(readlink -f $files)
+
+count=0
+touch Conc.csv
+
+for J in $files 
+do 
+    count=$((count+1))
+    iden=$(echo "$J" | rev | cut -d '/' -f 2 | rev | cut -d '_' -f 1)
+    cat "$J" > temp 
+    sed "1d" temp > tempfile ; mv tempfile temp
+    sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 
+    if (($count == 1))
+    then 
+        cat temp > Conc.csv
+    else 
+        cut -d ',' -f 2 temp  > count_ind
+        paste -d ',' Conc.csv count_ind > temp2 && mv temp2 Conc.csv 
+        rm -f temp2 
+    fi 
+done 
+
+rm count_ind temp 
