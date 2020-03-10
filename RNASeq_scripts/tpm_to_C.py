@@ -20,7 +20,7 @@ def tpmToC(filepath,filename,exp_values):
     data=pd.read_csv(filepath)
     y=exp_values
     x=list(data.loc[data['tracking_id'].str.contains('spike'),"TPM"]) ## Second column 
-    #suma=data.loc[:,2].sum()
+    suma=data.loc[:,2].sum()
     x=np.array(x).reshape(-1,1)
     y=np.array(y).reshape(-1,1)
     reg = LinearRegression().fit(x,y)
