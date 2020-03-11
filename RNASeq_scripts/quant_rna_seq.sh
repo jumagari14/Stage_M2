@@ -120,7 +120,7 @@ cd "$1";
 files=$(find tpm/ -type f | sort)
 files=$(readlink -f $files)
 count=0
-touch TPM.csv
+touch TPM_"$2".csv
 
 for J in $files 
 do 
@@ -131,10 +131,10 @@ do
     sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 
     if (($count == 1))
     then 
-        cat temp > TPM.csv
+        cat temp > TPM_"$2".csv
     else 
         cut -d ',' -f 2 temp  > count_ind
-        paste -d ',' TPM.csv count_ind > temp2 && mv temp2 TPM.csv 
+        paste -d ',' TPM_"$2".csv count_ind > temp2 && mv temp2 TPM_"$2".csv 
         rm -f temp2 
     fi 
 done 
@@ -145,7 +145,7 @@ files=$(find Conc/ -type f | sort)
 files=$(readlink -f $files)
 
 count=0
-touch Conc.csv
+touch Conc_"$2".csv
 
 for J in $files 
 do 
@@ -156,10 +156,10 @@ do
     sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 
     if (($count == 1))
     then 
-        cat temp > Conc.csv
+        cat temp > Conc_"$2".csv
     else 
         cut -d ',' -f 2 temp  > count_ind
-        paste -d ',' Conc.csv count_ind > temp2 && mv temp2 Conc.csv 
+        paste -d ',' Conc_"$2".csv count_ind > temp2 && mv temp2 Conc_"$2".csv 
         rm -f temp2 
     fi 
 done 
