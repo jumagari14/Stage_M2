@@ -1,0 +1,450 @@
+#############################
+User: juagarcia
+Date: Wed Mar 11 11:01:18 CET 2020
+Host: n151
+Directory: /gpfs/home/juagarcia/git_repo/RNASeq_scripts
+SLURM_JOBID: 2262059
+SLURM_SUBMIT_DIR: /gpfs/home/juagarcia/git_repo/RNASeq_scripts
+SLURM_JOB_NODELIST: n[151-152]
+#############################
+FPKM_4013_TTACAGGA-TGACAAGC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4013_TTACAGGA-TGACAAGC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      776
+1                Ach00g005481      614
+2                Ach00g005491        2
+3                Ach00g005511        2
+4                Ach00g005531     2017
+...                       ...      ...
+39769            __no_feature  6744067
+39770             __ambiguous   301669
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4054161
+
+[39774 rows x 2 columns]
+FPKM_4102_ATATCTCG-ATCTTAGT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4102_ATATCTCG-ATCTTAGT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      696
+1                Ach00g005481      309
+2                Ach00g005491        1
+3                Ach00g005511        7
+4                Ach00g005531     4118
+...                       ...      ...
+39769            __no_feature  7600818
+39770             __ambiguous   612479
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5805053
+
+[39774 rows x 2 columns]
+FPKM_4084_GTTCCAAT-AATTCTGC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4084_GTTCCAAT-AATTCTGC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      267
+1                Ach00g005481      159
+2                Ach00g005491        0
+3                Ach00g005511        2
+4                Ach00g005531     1866
+...                       ...      ...
+39769            __no_feature  4316816
+39770             __ambiguous   353222
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3689638
+
+[39774 rows x 2 columns]
+FPKM_4044_CTACGACA-GAGTCCAA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4044_CTACGACA-GAGTCCAA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      757
+1                Ach00g005481      335
+2                Ach00g005491        1
+3                Ach00g005511        2
+4                Ach00g005531     1402
+...                       ...      ...
+39769            __no_feature  5886006
+39770             __ambiguous   243806
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3520081
+
+[39774 rows x 2 columns]
+FPKM_4032_CGTTAGAA-TTCAGGTC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4032_CGTTAGAA-TTCAGGTC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1110
+1                Ach00g005481      455
+2                Ach00g005491        3
+3                Ach00g005511        4
+4                Ach00g005531     1428
+...                       ...      ...
+39769            __no_feature  6652764
+39770             __ambiguous   279141
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3589223
+
+[39774 rows x 2 columns]
+FPKM_4062_GGAGCGTC-GTCCGTGC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4062_GGAGCGTC-GTCCGTGC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      694
+1                Ach00g005481      366
+2                Ach00g005491        5
+3                Ach00g005511        5
+4                Ach00g005531     2631
+...                       ...      ...
+39769            __no_feature  8275454
+39770             __ambiguous   658808
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5845380
+
+[39774 rows x 2 columns]
+FPKM_4104_AACAGGTT-ATACCAAG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4104_AACAGGTT-ATACCAAG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      464
+1                Ach00g005481      274
+2                Ach00g005491        1
+3                Ach00g005511        3
+4                Ach00g005531     3220
+...                       ...      ...
+39769            __no_feature  6193629
+39770             __ambiguous   472169
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5073686
+
+[39774 rows x 2 columns]
+FPKM_4103_GCGCTCTA-GCTCCGAC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4103_GCGCTCTA-GCTCCGAC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      425
+1                Ach00g005481      245
+2                Ach00g005491        2
+3                Ach00g005511        9
+4                Ach00g005531     2770
+...                       ...      ...
+39769            __no_feature  5109651
+39770             __ambiguous   383381
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4039653
+
+[39774 rows x 2 columns]
+FPKM_4012_CCGTGAAG-CAGTGGAT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4012_CCGTGAAG-CAGTGGAT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1272
+1                Ach00g005481      841
+2                Ach00g005491        6
+3                Ach00g005511        2
+4                Ach00g005531     2901
+...                       ...      ...
+39769            __no_feature  9047558
+39770             __ambiguous   467021
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5910654
+
+[39774 rows x 2 columns]
+FPKM_4045_TAAGTGGT-CTTAAGCC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4045_TAAGTGGT-CTTAAGCC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1304
+1                Ach00g005481      549
+2                Ach00g005491        2
+3                Ach00g005511        3
+4                Ach00g005531     2275
+...                       ...      ...
+39769            __no_feature  8886659
+39770             __ambiguous   386986
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4952426
+
+[39774 rows x 2 columns]
+FPKM_4051_CGGACAAC-TCCGGATT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4051_CGGACAAC-TCCGGATT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      844
+1                Ach00g005481      502
+2                Ach00g005491        2
+3                Ach00g005511        9
+4                Ach00g005531     2173
+...                       ...      ...
+39769            __no_feature  7180991
+39770             __ambiguous   401607
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4552540
+
+[39774 rows x 2 columns]
+FPKM_4132_GGTGAACC-GCGTTGGA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4132_GGTGAACC-GCGTTGGA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      242
+1                Ach00g005481      188
+2                Ach00g005491        2
+3                Ach00g005511        9
+4                Ach00g005531     1466
+...                       ...      ...
+39769            __no_feature  4402662
+39770             __ambiguous   259225
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3355753
+
+[39774 rows x 2 columns]
+FPKM_4034_GATTCTGC-GACGAGAG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4034_GATTCTGC-GACGAGAG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      769
+1                Ach00g005481      426
+2                Ach00g005491        2
+3                Ach00g005511        1
+4                Ach00g005531     1193
+...                       ...      ...
+39769            __no_feature  5590663
+39770             __ambiguous   252847
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3117589
+
+[39774 rows x 2 columns]
+FPKM_4054_GCGCAAGC-TCACGCCG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4054_GCGCAAGC-TCACGCCG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      623
+1                Ach00g005481      340
+2                Ach00g005491        0
+3                Ach00g005511        1
+4                Ach00g005531     1578
+...                       ...      ...
+39769            __no_feature  5751310
+39770             __ambiguous   300486
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3499155
+
+[39774 rows x 2 columns]
+FPKM_4083_GCAATGCA-GGAACGTT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4083_GCAATGCA-GGAACGTT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      397
+1                Ach00g005481      207
+2                Ach00g005491        2
+3                Ach00g005511        2
+4                Ach00g005531     2445
+...                       ...      ...
+39769            __no_feature  5668275
+39770             __ambiguous   484409
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4632400
+
+[39774 rows x 2 columns]
+FPKM_4135_TGGTGGCA-TCCTGTAA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4135_TGGTGGCA-TCCTGTAA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      371
+1                Ach00g005481      226
+2                Ach00g005491        6
+3                Ach00g005511        6
+4                Ach00g005531     1818
+...                       ...      ...
+39769            __no_feature  5380975
+39770             __ambiguous   320985
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4026961
+
+[39774 rows x 2 columns]
+FPKM_4022_AATGCCTC-TCGATCCA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4022_AATGCCTC-TCGATCCA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      754
+1                Ach00g005481      388
+2                Ach00g005491        0
+3                Ach00g005511        0
+4                Ach00g005531     1258
+...                       ...      ...
+39769            __no_feature  6052455
+39770             __ambiguous   251400
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3578032
+
+[39774 rows x 2 columns]
+FPKM_4053_ATATGGAT-CTGTATTA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4053_ATATGGAT-CTGTATTA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      707
+1                Ach00g005481      348
+2                Ach00g005491        2
+3                Ach00g005511        1
+4                Ach00g005531     1880
+...                       ...      ...
+39769            __no_feature  6605055
+39770             __ambiguous   421392
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4220446
+
+[39774 rows x 2 columns]
+FPKM_4134_CAACAATG-CTTCACGG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4134_CAACAATG-CTTCACGG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      417
+1                Ach00g005481      277
+2                Ach00g005491        9
+3                Ach00g005511       15
+4                Ach00g005531     2255
+...                       ...      ...
+39769            __no_feature  6663105
+39770             __ambiguous   422814
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5034913
+
+[39774 rows x 2 columns]
+FPKM_4065_ATGGCATG-AAGGTACC-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4065_ATGGCATG-AAGGTACC-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      635
+1                Ach00g005481      388
+2                Ach00g005491        1
+3                Ach00g005511        3
+4                Ach00g005531     2855
+...                       ...      ...
+39769            __no_feature  8234897
+39770             __ambiguous   614637
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5670385
+
+[39774 rows x 2 columns]
+FPKM_4061_AAGATACT-ACTTACAT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4061_AAGATACT-ACTTACAT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      633
+1                Ach00g005481      360
+2                Ach00g005491        6
+3                Ach00g005511        2
+4                Ach00g005531     2231
+...                       ...      ...
+39769            __no_feature  7092911
+39770             __ambiguous   500569
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4683364
+
+[39774 rows x 2 columns]
+FPKM_4033_AGCCTCAT-AGTAGAGA-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4033_AGCCTCAT-AGTAGAGA-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1295
+1                Ach00g005481      805
+2                Ach00g005491        2
+3                Ach00g005511        6
+4                Ach00g005531     2157
+...                       ...      ...
+39769            __no_feature  9532403
+39770             __ambiguous   437644
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5370736
+
+[39774 rows x 2 columns]
+FPKM_4085_ACCTTGGC-GGCCTCAT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4085_ACCTTGGC-GGCCTCAT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      393
+1                Ach00g005481      251
+2                Ach00g005491        1
+3                Ach00g005511        5
+4                Ach00g005531     2815
+...                       ...      ...
+39769            __no_feature  6079236
+39770             __ambiguous   534857
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5058432
+
+[39774 rows x 2 columns]
+FPKM_4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      911
+1                Ach00g005481      603
+2                Ach00g005491        0
+3                Ach00g005511        4
+4                Ach00g005531     2254
+...                       ...      ...
+39769            __no_feature  7534938
+39770             __ambiguous   387015
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  4662071
+
+[39774 rows x 2 columns]
+FPKM_4021_GGCATTCT-CTAGCTTG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4021_GGCATTCT-CTAGCTTG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471      640
+1                Ach00g005481      459
+2                Ach00g005491        1
+3                Ach00g005511        4
+4                Ach00g005531     1219
+...                       ...      ...
+39769            __no_feature  5563851
+39770             __ambiguous   233592
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  3277810
+
+[39774 rows x 2 columns]
+FPKM_4024_TACCGAGG-CCTGAACT-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4024_TACCGAGG-CCTGAACT-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1235
+1                Ach00g005481      720
+2                Ach00g005491        0
+3                Ach00g005511        5
+4                Ach00g005531     2212
+...                       ...      ...
+39769            __no_feature  9156161
+39770             __ambiguous   454602
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5652849
+
+[39774 rows x 2 columns]
+FPKM_4041_TCGTAGTG-AGACTTGG-BHKJVVDSXX_L003
+resultsKiwi/readCount/readCount-4041_TCGTAGTG-AGACTTGG-BHKJVVDSXX_L003.txt
+                  tracking_id    count
+0                Ach00g005471     1287
+1                Ach00g005481      550
+2                Ach00g005491        2
+3                Ach00g005511        7
+4                Ach00g005531     2153
+...                       ...      ...
+39769            __no_feature  8976881
+39770             __ambiguous   410266
+39771         __too_low_aQual        0
+39772           __not_aligned        0
+39773  __alignment_not_unique  5024393
+
+[39774 rows x 2 columns]
+['4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003', '4012_CCGTGAAG-CAGTGGAT-BHKJVVDSXX_L003', '4013_TTACAGGA-TGACAAGC-BHKJVVDSXX_L003', '4021_GGCATTCT-CTAGCTTG-BHKJVVDSXX_L003', '4022_AATGCCTC-TCGATCCA-BHKJVVDSXX_L003', '4024_TACCGAGG-CCTGAACT-BHKJVVDSXX_L003', '4032_CGTTAGAA-TTCAGGTC-BHKJVVDSXX_L003', '4033_AGCCTCAT-AGTAGAGA-BHKJVVDSXX_L003', '4034_GATTCTGC-GACGAGAG-BHKJVVDSXX_L003', '4041_TCGTAGTG-AGACTTGG-BHKJVVDSXX_L003', '4044_CTACGACA-GAGTCCAA-BHKJVVDSXX_L003', '4045_TAAGTGGT-CTTAAGCC-BHKJVVDSXX_L003', '4051_CGGACAAC-TCCGGATT-BHKJVVDSXX_L003', '4053_ATATGGAT-CTGTATTA-BHKJVVDSXX_L003', '4054_GCGCAAGC-TCACGCCG-BHKJVVDSXX_L003', '4061_AAGATACT-ACTTACAT-BHKJVVDSXX_L003', '4062_GGAGCGTC-GTCCGTGC-BHKJVVDSXX_L003', '4065_ATGGCATG-AAGGTACC-BHKJVVDSXX_L003', '4083_GCAATGCA-GGAACGTT-BHKJVVDSXX_L003', '4084_GTTCCAAT-AATTCTGC-BHKJVVDSXX_L003', '4085_ACCTTGGC-GGCCTCAT-BHKJVVDSXX_L003', '4102_ATATCTCG-ATCTTAGT-BHKJVVDSXX_L003', '4103_GCGCTCTA-GCTCCGAC-BHKJVVDSXX_L003', '4104_AACAGGTT-ATACCAAG-BHKJVVDSXX_L003', '4132_GGTGAACC-GCGTTGGA-BHKJVVDSXX_L003', '4134_CAACAATG-CTTCACGG-BHKJVVDSXX_L003', '4135_TGGTGGCA-TCCTGTAA-BHKJVVDSXX_L003']
+Traceback (most recent call last):
+  File "tpm_to_C.py", line 76, in <module>
+    mix_n=list(fruit_data.loc[fruit_data["Sample"]==float(iden),"Mix"])[0]      
+IndexError: list index out of range
+readlink: missing operand
+Try 'readlink --help' for more information.
+rm: cannot remove 'count_ind': No such file or directory
+rm: cannot remove 'temp': No such file or directory

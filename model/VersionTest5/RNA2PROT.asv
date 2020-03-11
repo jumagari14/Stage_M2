@@ -1,0 +1,169 @@
+% Modèle simple interaction RNA-Protéines
+% 
+% Lecture des données: nom, (DPA_i,r_i,p_i) i=1..n
+% Normalisation des données par rapport à la moyenne
+% P_i=p_i/p0 et R_i=r_i/r0 où p0=mean(p_i) et r0=mean(r_i)
+% lissage des données RNA par régression polynomiale ordre 3
+% R(t)=polynome de degré 3
+% Equation différentielle pour modéliser P
+% dP/dt=Ks*R(t)-kd*P
+% d'où P(t)=poly deg 3 + a*exp(-kd*t)
+% calibrage des paramètres Ks et kd: moindres carrés
+% S(Ks,kd)=sum(P(DPA_i)-P_i)^2
+% sensibilité de P par rapport à (Ks,kd)
+
+%provisoire
+global ptrans3 ptrans6 St6 mt6 St3 mt3 degre
+global Wp6 SW6 mW6 Wp3 SW3 mW3 degreW fitW
+global xi yi h
+global DPA_R DPA_P R fitR 
+global fitPoids parv parg parc parl pare pard Wp3 Sp3 mp3
+
+% Lecture des données dans fichier(s)
+% RNA table de structures et PROT table de structures contenant
+% NOM cell
+% DPA matrice colonne
+% data matrice colonne
+
+close all;
+%load('RNAPROT_test.mat')
+%load('RNATab1.mat');
+%load('PROTTab1.mat');
+load('../../data/Isma/POIDS');
+load('../../data/Isma/PROT')
+
+load('../../data/Isma/RNA')
+
+% lecture des ks
+load ('../../data/Isma/KS')
+NOM_ks=NOM;ks=valeur(1,:)
+
+% ajout de données manuelles: (0,0)
+%[PROT,RNA,poids]=ajoutdata(PROT,RNA,poids);
+xi=poids(:,1);yi=poids(:,2);
+
+% choix de la courbe de croissance (fitPoids variable globale)
+fit_testpoids(xi,yi);
+
+
+
+%ks=calculks();
+% % valeurs du taux de synthèse de chaque proteine ks
+% ks valeurs calculées : formule de V. Mengin
+%ks=[279.1385;183.6437;511.5789;363.6072;440.9235;418.0645;495.7377;416.7841;...
+%    336.2768;184.8787;302.4000;308.0475;174.3358;499.3761;217.7280;380.3774];
+% valeurs déterminées par Sophie (autre modèle)
+%kd=[0.29;1.10;4.04;0.62;0.26;0.74;5.01;0.76;0.71;0.91;1.64;0.23;0.41;0.76;...
+%    0.96;0.03;0.29;1.10;4.04;0.62;0.26;0.74;5.01;0.76;0.71;0.91;1.64;0.23;...
+%    0.41;0.76;0.96;0.03];
+kd=ks;
+% stop or not
+ecart=0;sauve=0;
+% Nom du fichier de sauvegarde
+filename=[];
+if sauve==1
+      filename = input('nom fichier: ', 's');
+end;
+
+
+% structure RNA: NOM, data
+% structure PROT: NOM, data
+% Nbre de Proteines (1ere colonne=DPA)
+nb_prot=size(PROT,2);
+
+
+  
+  % pour chaque couple (RNA,proteine)
+  %nb_Prot=1;
+  cpt_fen=0;%compteur fenetre
+  %for i=5:5
+  for i=5:5
+      cpt_fen=cpt_fen+1;
+      % temps (DPA) des mesures en gFW
+      DPA_P=PROT(i).DPA;RNAg=RNA(i).data;
+      DPA_R=RNA(i).DPA;PROTg=PROT(i).data;
+      % nom solyc prot/rna
+      NOM=RNA(i).NOM;
+           % [RHO,PVAL] = corr(RNAg,PROTg,'Type','Spearman');
+      % ks fixé
+      ksi=0.105*3600*24;
+      % CALCUL SUR DONNEES/gFW
+      % normalisation données brutes et du ks correspondant
+      titre=[NOM{1} '(/gFW)'];
+      [Rg,Pg,ks_n,R0g,P0g]=normalisation(cpt_fen,titre,DPA_R,RNAg,DPA_P,PROTg,ksi);
+      kd=ks_n
+      cpt_fen=cpt_fen+1;
+      % choix de la fonction t->RNA(t)(données brutes en gFW)
+      R=Rg;
+      fit_testRNA(cpt_fen,titre,DPA_R,R)
+      % détermination du couple(kd,ks) 
+      % à partir des données brutes normalisées(R,P)
+      % en utilisant la fonction t->mu(t) taux de croissance
+      % dp/dt=ks*r-(kd+mu)*p (données en gFW)
+      [kparg,fprotg,errg]=solg(NOM,DPA_P,Pg,ks_n);
+      % affichage des résultats /gFW
+      cpt_fen=cpt_fen+1;
+      fit_Prot(cpt_fen,titre,DPA_P,Pg,kparg,fprotg,errg,R0g,P0g,ks_n);
+      
+      % courbe de niveau de la fonction ecartMC(ks,kd) au voisinage du min
+      ecartgrille=0;
+      if ecartgrille==1
+          parI=kparg(1:3);
+          pas1=parI(2)/10;pas2=parI(3)/10;
+          % nombre de points de la grille nbgrid^2
+          nbgrid=50;edo=zeros(length(DPA_P),nbgrid,nbgrid);
+          ecart=zeros(nbgrid,nbgrid);
+          ksseq=linspace(parI(2)*0.1,parI(2)*5,nbgrid);
+          kdseq=linspace(parI(3)*0.1,parI(3)*5,nbgrid);
+          nPg=norm(Pg);
+          for in=1:nbgrid
+              for jn=1:nbgrid
+                  xseq=[parI(1);ksseq(in);kdseq(jn)];
+                  edo(:,in,jn)=resol_mu(xseq,DPA_P);
+                  ecart(in,jn)=norm(edo(:,in,jn)-Pg)/nPg;
+              end
+          end
+          cpt_fen=cpt_fen+1;figure(cpt_fen);
+          emin=min(min(ecart));pas=emin/20;
+          z=[emin;emin+pas;emin+2*pas;emin+4*pas;emin+8*pas;emin+16*pas];
+          contour(ksseq,kdseq,transpose(ecart),10,'LevelList',z,'LevelListMode','manual','ShowText','on')
+          xlabel('k_s ')
+          ylabel('k_d') %
+          hold on;
+          plot(parI(2),parI(3),'r*');
+          plot(kparg(5),kparg(6),'c*');
+      end;
+      
+      fruit=0;
+     if fruit==1
+      % CALCUL SUR DONNEES/FRUIT
+      % prise en compte de la croissance: quantité dans le fruit
+      [RNAf,PROTf]=croissance(RNAg,DPA_R,PROTg,DPA_P);
+      % normalisation données quantité dans le fruit
+      cpt_fen=cpt_fen+1;titre=[NOM{1} '(/fruit)'];
+      [Rf,Pf,ks_nf,R0f,P0f]=normalisation(cpt_fen,titre,DPA_R,RNAf,DPA_P,PROTf,ksi);
+      cpt_fen=cpt_fen+1;
+      % choix de la fonction t->RNAf(t)(données rapportées au fruit)
+      R=Rf;
+      % fit_testRNA(cpt_fen,titre,DPA_R,R)
+      % détermination du couple(kd,ks) à partir des données rapportées au
+      % fruit normalisées: (Rf,Pf) dp/dt=ks*r-kd*p
+      [kparf,fprotf,errf]=solf(NOM,DPA_P,Pf,ks_nf);
+      % affichage des résultats /fruit
+      cpt_fen=cpt_fen+1;
+      fit_Prot(cpt_fen,titre,DPA_P,Pf,kparf,fprotf,errf,R0f,P0f,ks_nf);
+      %[sol,par]=traitement(i,ks_n,kd,DPA_R,DPA_P,NOM,R,P);
+     end
+      %affsol(i,ks_n,kd,par,NOM,DPA_P,P,sol);
+      
+      if ecart==1
+         region(i,NOM,par,DPA_P,P )
+      end;
+      %[DPA sol]
+      %erreur=[norm(P-sol(:,1),2),norm(P-sol(:,2),2),norm(P-sol(:,3),2),norm(P-sol(:,4),2)]
+      if sauve==1
+          %sauve(filename,i,NOM,ks_n,kd(i-1),par,DPA,P,sol);
+      end;
+      
+  end;
+   

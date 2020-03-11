@@ -20,15 +20,15 @@ def tpmToC(filepath,filename,exp_values):
     data=pd.read_csv(filepath)
     y=exp_values
     x=list(data.loc[data['tracking_id'].str.contains('spike'),"TPM"]) ## Second column 
-    suma=data.loc[:,2].sum()
+    # suma=data.loc[:,2].sum()
     x=np.array(x).reshape(-1,1)
     y=np.array(y).reshape(-1,1)
     reg = LinearRegression().fit(x,y)
     if reg.score(x,y)!=0: 
-        x_pred=data.loc[data['tracking_id'].str.contains("."),"TPM"]
+        x_pred=data.loc[~data['tracking_id'].str.contains("spike"),"TPM"]
         x_pred=np.array(x_pred).reshape(-1,1)
         pred=reg.predict(x_pred)
-        return pd.DataFrame({'Column name': data['tracking_id'], 'Concentration (fmol)': pred.flatten()})
+        return pd.DataFrame({'Column name': data['tracking_id'][~data['tracking_id'].str.contains("spike")], 'Concentration (fmol)': pred.flatten()})
     else : 
         return False
     
@@ -55,11 +55,11 @@ spike_mol={'M8': [[2.574E-5,1.901E-4,1.259E-3,1.043E-2,9.931E-2,8.108E-1,5.132,3
 'M7': [[2.574e-05, 0.0001901, 0.001259, 0.01043, 0.09931000000000001, 0.8108, 50.82, 3.7809999999999997],[9.975e-06, 7.304e-05, 0.0004923999999999999, 0.004072, 0.03801, 0.3144, 19.709999999999997, 1.468],[3.831e-06, 3.816e-05, 0.0004036, 0.004078999999999999, 0.040150000000000005, 0.4012, 39.71, 4.013]]}
 
 
-new_direc=dirpath.split("/")[0]+"Conc"
+new_direc=dirpath.split("/")[0]+"/Conc"
 if os.path.isdir(new_direc)==False: 
     os.makedirs(new_direc)
 
-cont=0
+cont=-1
 save_dir=[]
 for root,dirs,files in os.walk(dirpath): 
     dirs.sort()
@@ -67,8 +67,9 @@ for root,dirs,files in os.walk(dirpath):
         for direc in dirs: 
             direc=direc.split("_",1)[1]
             save_dir.append(direc)
-            if os.path.isdir(new_direc+direc)!=True: 
-                os.makedirs(new_direc+direc)
+            if os.path.isdir(new_direc+"/"+direc)!=True: 
+                os.makedirs(new_direc+"/"+direc)
+        print(save_dir)
     if len(files)!=0:  
         cont=cont+1
         iden=root.split("_")[1]
@@ -78,9 +79,13 @@ for root,dirs,files in os.walk(dirpath):
                 filepath=os.path.join(root,f)
                 mol_values=spike_mol[mix_n]
                 concen=tpmToC(filepath,f,mol_values[cont%3])
+                print(filepath)
                 if isinstance(concen,pd.DataFrame) : 
                     #concen["Concentration (fmol)"]=concen["Concentration (fmol)"].flatten()
-                    concen.to_csv("Conc/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
+                    print(save_dir[cont])
+                    concen.to_csv(new_direc+"/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
             ## rowSums of conc values from 3 consecutive dictionnaries 
             ## Set concen list as empty 
 
+# concen=tpmToC("resultsConcombre/tpm/tpm_5012_CCGCGGTT-AGCGCTAG-BHKJVVDSXX_L003/genes_TPM.csv","genes_TPM.csv",spike_mol["M5"][0])
+# print(concen)
