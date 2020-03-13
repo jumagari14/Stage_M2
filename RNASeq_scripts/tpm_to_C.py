@@ -21,15 +21,16 @@ def tpmToC(filepath,filename,exp_values):
     y=exp_values
     x=list(data.loc[data['tracking_id'].str.contains('spike'),"TPM"]) ## Second column 
     # suma=data.loc[:,2].sum()
-    x=np.array(x).reshape(-1,1)
-    y=np.array(y).reshape(-1,1)
+    x=np.array(x)
+    x=x.reshape(-1,1)
+    y=np.array(y)
+    y=y.reshape(-1,1)
     reg = LinearRegression().fit(x,y)
-    print(reg.score(x,y))
     if reg.score(x,y)!=0: 
         x_pred=data.loc[~data['tracking_id'].str.contains("spike"),"TPM"]
         x_pred=np.array(x_pred).reshape(-1,1)
         pred=reg.predict(x_pred)
-        return pd.DataFrame({'Column name': data['tracking_id'][~data['tracking_id'].str.contains("spike")], 'Concentration (fmol)': pred.flatten()})
+        return pd.DataFrame({'Column name': data.loc[~data['tracking_id'].str.contains("spike"),"tracking_id"], 'Concentration (fmol)': pred.flatten()})
     else : 
         return False
     
@@ -79,16 +80,17 @@ for root,dirs,files in os.walk(dirpath):
         iden=root.split("_")[1]
         mix_n=list(fruit_data.loc[fruit_data["Sample"]==float(iden),"Mix"])[0]  
         fw= list(fruit_data.loc[fruit_data["Sample"]==float(iden),fw_ind])[0] 
+        print(iden)
         for f in files: 
             if "genes" in f: 
                 filepath=os.path.join(root,f)
                 mol_values=spike_mol[mix_n]
-                print(iden)
+                print(cont%3)
                 concen=tpmToC(filepath,f,mol_values[cont%3])
                 if isinstance(concen,pd.DataFrame) : 
                     #concen["Concentration (fmol)"]=concen["Concentration (fmol)"].flatten()
                     concen["Concentration (fmol)"]=concen["Concentration (fmol)"]/(float(fw)/1000)
-                    #concen.to_csv(new_direc+"/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
+                    concen.to_csv(new_direc+"/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
             ## rowSums of conc values from 3 consecutive dictionnaries 
             ## Set concen list as empty 
 
