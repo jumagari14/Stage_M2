@@ -24,6 +24,7 @@ def tpmToC(filepath,filename,exp_values):
     x=np.array(x).reshape(-1,1)
     y=np.array(y).reshape(-1,1)
     reg = LinearRegression().fit(x,y)
+    print(reg.score(x,y))
     if reg.score(x,y)!=0: 
         x_pred=data.loc[~data['tracking_id'].str.contains("spike"),"TPM"]
         x_pred=np.array(x_pred).reshape(-1,1)
@@ -82,13 +83,14 @@ for root,dirs,files in os.walk(dirpath):
             if "genes" in f: 
                 filepath=os.path.join(root,f)
                 mol_values=spike_mol[mix_n]
+                print(iden)
                 concen=tpmToC(filepath,f,mol_values[cont%3])
                 if isinstance(concen,pd.DataFrame) : 
                     #concen["Concentration (fmol)"]=concen["Concentration (fmol)"].flatten()
                     concen["Concentration (fmol)"]=concen["Concentration (fmol)"]/(float(fw)/1000)
-                    concen.to_csv(new_direc+"/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
+                    #concen.to_csv(new_direc+"/"+save_dir[cont]+"/genes.csv",mode="w",index=False)
             ## rowSums of conc values from 3 consecutive dictionnaries 
             ## Set concen list as empty 
 
-# concen=tpmToC("resultsConcombre/tpm/tpm_5012_CCGCGGTT-AGCGCTAG-BHKJVVDSXX_L003/genes_TPM.csv","genes_TPM.csv",spike_mol["M5"][0])
+# concen=tpmToC("resultsKiwi/tpm/tpm_4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003/genes_TPM.csv","genes_TPM.csv",spike_mol["M5"][0])
 # print(concen)
