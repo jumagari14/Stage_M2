@@ -25,7 +25,7 @@ def tpmToC(filepath,filename,exp_values):
     x=x.reshape(-1,1)
     y=np.array(y)
     y=y.reshape(-1,1)
-    reg = LinearRegression().fit(x,y)
+    reg = LinearRegression(fit_intercept=False).fit(x,y)
     if reg.score(x,y)!=0: 
         x_pred=data.loc[~data['tracking_id'].str.contains("spike"),"TPM"]
         x_pred=np.array(x_pred).reshape(-1,1)
