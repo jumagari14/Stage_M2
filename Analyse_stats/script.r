@@ -83,7 +83,7 @@ plotDensity<-function(dataframe){
     ylab("Number of variables") +theme+ #+ 
     # stat_summary(aes(x=value,group=1),fun.y = median,
     #             geom = "line", width = 0.5,group=1)
-  geom_vline(xintercept=median(melted$value[melted$value!=0]),linetype="dotdash",color="red")
+    geom_vline(xintercept=median(melted$value[melted$value!=0]),linetype="dotdash",color="red")
 }
 
 plotDensity(conc_data)
@@ -107,17 +107,18 @@ clusteredHeatmap<-function(dataframe){
   log_val[which(!is.finite(log_val))]<-0
   heatmap.2(log_val,Rowv=as.dendrogram(row.cluster),
             Colv = F,
-            labCol = F,
+            labRow = F,
             col=scaleRYG,
+            margin=c(5,5),
             density.info="none",
             trace = "none"
-            )
+  )
   # pos2<-locator()
   pos2<-structure(list(x=c(0.27149971320082, 0.858971646016485),
                        y=c(0.861365598392473, 0.857450478257082)),
                   .Names=c("x","y"))
   text(x=seq(pos2$x[1], pos2$x[2], len=ncol(dataframe)), y=rep(pos2$y[1],5),
-       srt=2, xpd=TRUE, adj = 0,
+       srt=2, xpd=TRUE, adj = 45,
        labels=colnames(dataframe))
 }
 # heatmaply(as.matrix(conc_data_2))
@@ -126,8 +127,12 @@ getHeatMap(conc_data_2)
 getHeatMap(kiwi_data_2)
 getHeatMap(tom_data2)
 
+png("heatmap_concombre.png", 1000, 1000,pointsize = 20)
 clusteredHeatmap(conc_data_2)
-#clusteredHeatmap(kiwi_data_2)
+dev.off()
+png("heatmap_kiwi.png",100,100)
+clusteredHeatmap(kiwi_data_2)
+dev.off()
 # PCA ---------------------------------------------------------------------
 
 getPCA<-function(dataframe,days_pca){
