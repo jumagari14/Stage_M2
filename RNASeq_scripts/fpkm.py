@@ -9,7 +9,6 @@ Based on equations explained in https://arxiv.org/pdf/1104.3889.pdf
 def getTPM(filepath, filename,folder,count_file): 
     data=pd.read_table(filepath)
     count_data=pd.read_table(count_file,header=None,sep="\t",names=['tracking_id','count'])
-    print(count_data)
     for i in range(data.shape[0]): 
         start_pos=re.search('[A-Za-z|0-9]*:([0-9]*)-([0-9]*)',str(data.iloc[i]["locus"])).group(1)
         end_pos=re.search('[A-Za-z|0-9]*:([0-9]*)-([0-9]*)',str(data.iloc[i]["locus"])).group(2)
@@ -29,7 +28,7 @@ def getTPM(filepath, filename,folder,count_file):
     TPM_data.drop(TPM_data.tail(5).index,inplace=True)
     header=filename.split(".")[0]
     path=filepath.rsplit("/",2)[1].replace("FPKM","/tpm")
-    TPM_data.to_csv(folder+path+"/"+header+"_TPM.csv",mode="w",index=False)
+    TPM_data.to_csv(folder+"/"+path+"/"+header+"_TPM.csv",mode="w",index=False)
     #TPM_data.to_csv
 
 ## MAIN
@@ -49,20 +48,22 @@ args=parser.parse_args()
 dirpath=args.pathdir
 
 new_direc=dirpath.split("/")[0]+"/tpm"
+print(new_direc)
 if os.path.isdir(new_direc)==False: 
     os.makedirs(new_direc)
 for root,dirs,files in os.walk(dirpath): 
     for direc in dirs: 
-        direc=direc.replace("FPKM","/tpm")
+        # print(direc)
+        # direc=direc.replace("fpkm","/tpm/")
         if os.path.isdir(new_direc+direc)==False: 
-            os.makedirs(new_direc+direc)
+            os.makedirs(new_direc+"/"+direc)
     if (root[len(dirpath):].count(os.sep)<3 and root[len(dirpath):]!=""):
         print(root[len(dirpath):])
-        count_filename=root[len(dirpath):].replace("FPKM_","readCount-") 
-        count_file=dirpath.split("/")[0]+"/readCount/"+count_filename+".txt"  
+        count_filename=root[len(dirpath):].replace("FPKM_","HTSeq_") 
+        count_file=dirpath.split("/")[0]+"/readCount/HTSeq_"+count_filename+".txt"  
         print(count_file)
         for f in files: 
-            if (f=="genes.fpkm_tracking"): 
+            if (f=="isoforms.fpkm_tracking"): 
                 filepath=os.path.join(root,f)
                 getTPM(filepath,f,new_direc,count_file)
 
