@@ -4,14 +4,14 @@
 # les directives Slurm vont ici:
 
 # Your job name (displayed by the queue)
-#SBATCH -J Testing data
+#SBATCH -J Fmol
 
 # walltime (hh:mm::ss)
 #SBATCH -t 10:00:00
 
 # Specify the number of nodes(nodes=) and the number of cores per nodes(tasks-pernode=) to be used
-#SBATCH -N 4
-#SBATCH --tasks-per-node=32
+#SBATCH -N 1
+#SBATCH --tasks-per-node=8
 
 # change working directory
 # SBATCH --chdir=.
@@ -111,7 +111,7 @@ module load python/3.7.2
 # done 
 # ./scripts/STAR --genomeLoad Remove --genomeDir ./bin/genome_ind
 
-#python3.6 fpkm.py -d "$1"/fpkm/
+python3.6 fpkm.py -d "$1"/fpkm/
 
 python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"
 
@@ -125,7 +125,7 @@ touch TPM_"$2".csv
 for J in $files 
 do 
     count=$((count+1))
-    iden=$(echo "$J" | rev | cut -d '/' -f 2 | rev | cut -d '_' -f 2)
+    iden=$(echo "$J" | rev | cut -d '/' -f 2 | rev | cut -d '_' -f 1)
     cat "$J" > temp 
     sed "1d" temp > tempfile ; mv tempfile temp
     sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 

@@ -30,7 +30,7 @@ def tpmToC(filepath,filename,exp_values):
         x_pred=data.loc[~data['tracking_id'].str.contains("spike"),"TPM"]
         x_pred=np.array(x_pred).reshape(-1,1)
         pred=reg.predict(x_pred)
-        return pd.DataFrame({'Column name': data.loc[~data['tracking_id'].str.contains("spike"),"tracking_id"], 'Concentration (fmol)': pred.flatten()})
+        return pd.DataFrame({"Column name": data.loc[~data['tracking_id'].str.contains("spike"),"tracking_id"], "Concentration (fmol)": pred.flatten()})
     else : 
         return False
     
@@ -71,18 +71,17 @@ for root,dirs,files in os.walk(dirpath):
     dirs.sort()
     if len(dirs)!=0: 
         for direc in dirs: 
-            direc=direc.split("_",1)[1]
             save_dir.append(direc)
             if os.path.isdir(new_direc+"/"+direc)!=True: 
                 os.makedirs(new_direc+"/"+direc)
     if len(files)!=0:  
         cont=cont+1
-        iden=root.split("_")[1]
+        iden=root.split("/")[2].split("_")[0]
         mix_n=list(fruit_data.loc[fruit_data["Sample"]==float(iden),"Mix"])[0]  
         fw= list(fruit_data.loc[fruit_data["Sample"]==float(iden),fw_ind])[0] 
         print(iden)
         for f in files: 
-            if "genes" in f: 
+            if "isoform" in f: 
                 filepath=os.path.join(root,f)
                 mol_values=spike_mol[mix_n]
                 print(cont%3)
