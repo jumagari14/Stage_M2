@@ -18,6 +18,8 @@ from sklearn.linear_model import LinearRegression
 
 def tpmToC(filepath,filename,exp_values): 
     data=pd.read_csv(filepath)
+    index=data[pd.isnull(data["TPM"])].index
+    data.drop(index,inplace=True)
     y=exp_values
     x=list(data.loc[data['tracking_id'].str.contains('spike'),"TPM"]) ## Second column 
     # suma=data.loc[:,2].sum()
@@ -93,5 +95,5 @@ for root,dirs,files in os.walk(dirpath):
             ## rowSums of conc values from 3 consecutive dictionnaries 
             ## Set concen list as empty 
 
-# concen=tpmToC("resultsKiwi/tpm/tpm_4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003/genes_TPM.csv","genes_TPM.csv",spike_mol["M5"][0])
+# concen=tpmToC("KiwiRed5/tpm/4011_TCCAACGC-TTGGACTT-BHKJVVDSXX_L003/isoforms_TPM.csv","isoforms_TPM.csv",spike_mol["M5"][0])
 # print(concen)
