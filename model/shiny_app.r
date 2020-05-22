@@ -3,10 +3,11 @@ library(shiny)
 library(shinythemes)
 library(dplyr)
 library(readr)
+library(readxl)
 
 # Load data
-trend_data <- read_csv("data/trend_data.csv")
-trend_description <- read_csv("data/trend_description.csv")
+trend_data <- read_xlsx("Paires_mrna_prot_kiwi_nouvMW.xlsx",sheet = "Proteines")
+trend_description <- read_xlsx("Paires_mrna_prot_kiwi_nouvMW.xlsx",sheet = "Transcrits")
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("lumen"),
