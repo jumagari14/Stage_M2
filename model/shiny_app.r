@@ -104,12 +104,14 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                     uiOutput("mult_files"),
                                     uiOutput("sing_file"),
                                     actionButton("disp_distr","Show distributions"),
-                                    plotOutput("distr_plot")
+                                    plotOutput("distr_plot"),
+                                    plotOutput("distr_stade")
                                     ),
                            tabPanel("Weight fitting",
                                     fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
-                                    selectInput("method_we","Select fitting formula",choices = c("Logistic"="logis","Gompertz"="gomp","Contois"="conto","Empiric"="empi","Noyau"="seed","Log polynomial"="logply","Double sigmoid"="doubl_sig")),
+                                    selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Contois"="contois","Empiric"="empirique","Noyau"="seed","Log polynomial"="log_poly","Double sigmoid"="double_sig")),
                                     actionButton("fit_op","Fit"),
+                                    plotOutput("fitplot")
                            ))
   # useShinyjs()
   # uiOutput("header"),
@@ -152,7 +154,7 @@ server <- function(input, output, session) {
   observe({
     if(!is.null(input$data_file)){
       inFile<-input$data_file
-      list_data<-loadData(inFile$datapath,input$rna_tab,input$protein_tab)
+      list_data<-loadData(inFile$datapath,input$rna_tab,input$protein_tab,poids=F)
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       clean_mrna_data<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
@@ -165,6 +167,14 @@ server <- function(input, output, session) {
         })
 
     }
+  })
+  
+
+  observeEvent(input$fit_op,{
+    inFile<-input$weight_data
+    poids_data<-loadData(inFile$datapath,"","",poids=T)
+    print("Fitting...")
+    output$fitplot<-renderPlot({fitPoids(poids_data[,1],poids_data[,2],input$method_we)})
   })
   
 }
