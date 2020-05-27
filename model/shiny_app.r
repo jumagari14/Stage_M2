@@ -94,7 +94,7 @@ library(cowplot)
 library(egg)
 
 source("main.r")
-source("input.r")
+# source("input.r")
 source("../../Analyse_stats/functions.r")
 
 ui <- fluidPage(theme = shinytheme("lumen"),
