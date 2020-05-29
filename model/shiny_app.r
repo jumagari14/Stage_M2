@@ -110,6 +110,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                            tabPanel("Weight fitting",
                                     fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
                                     selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Contois"="contois","Empiric"="empirique","Noyau"="seed","Log polynomial"="log_poly","Double sigmoid"="double_sig")),
+                                    uiOutput("doubl_sig"),
+                                    uiOutput("log_poly"),
                                     actionButton("fit_op","Fit"),
                                     plotOutput("fitplot")
                            ))
@@ -122,21 +124,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
 )
 
 server <- function(input, output, session) {
-  # rv <- reactiveValues(page = 1)
-  # output$header<-renderText({ifelse(rv$page==2,"Input data","Second step")})
-  # observe({
-  #   toggleState(id = "prevBtn", condition = rv$page > 1)
-  #   toggleState(id = "nextBtn", condition = rv$page < NUM_PAGES)
-  #   hide(selector = ".page")
-  #   show(paste0("step", rv$page))
-  # })
-
-  # navPage <- function(direction) {
-  #   rv$page <- rv$page + direction
-  # }
-
-  # observeEvent(input$prevBtn, navPage(-1))
-  # observeEvent(input$nextBtn, navPage(1))
+  fit_op<-reactiveValues(data=NULL)
   output$mult_files<-renderUI({
     if (!input$multiple){
     tagList(fileInput("prot_file","Choose protein file"),
@@ -149,6 +137,17 @@ server <- function(input, output, session) {
       tagList(textInput("protein_tab","Name of protein tab",value = "Proteines"),
               textInput("rna_tab","Name of mRNA tab",value = "Transcrits"),
               fileInput("data_file","Choose xls/xlsx file",accept=c(".xls",".xlsx")))
+    }
+  })
+  output$doubl_sig<-renderUI({
+    if (input$method_we=="double_sig"){
+      tagList(textInput("par4_sig","Enter value of par4",value = 0.4),
+      textInput("par1_sig","Enter value of par1",value = 48),
+      textInput("par2_sig","Enter value of par2",value = 0.144),
+      textInput("par3_sig","Enter value of par3",value = 35),
+      textInput("par5_sig","Enter value of par5",value = 48),
+      textInput("par6_sig","Enter value of par6",value = 0.042),
+      textInput("par7_sig","Enter value of par7",value = 90))
     }
   })
   observe({
@@ -171,12 +170,16 @@ server <- function(input, output, session) {
   
 
   observeEvent(input$fit_op,{
+    fit_op$state<-TRUE
     inFile<-input$weight_data
+    days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
     poids_data<-loadData(inFile$datapath,"","",poids=T)
     print("Fitting...")
-    output$fitplot<-renderPlot({fitPoids(poids_data[,1],poids_data[,2],input$method_we)})
   })
-  
+  output$fitplot<-renderPlot({
+      req(fit_op$state)
+      fitPoids(poids_data[,1],poids_data[,2],input$method_we,days_kiwi)
+    })
 }
 
 if (interactive()) shinyApp(ui = ui, server = server)
