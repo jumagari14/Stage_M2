@@ -5,6 +5,8 @@ require("readxl")
 require("reshape2")
 library(dplyr)
 library(pracma)
+library(ggplot2)
+library(readr)
 # setwd("D:/Stage M2/Stage_M2/model/")
 setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/model/")
 
@@ -62,7 +64,7 @@ combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   y_max<-(ggplot_build(g1)$layout$panel_scales_y[[1]]$range$range)[2]
   g1+annotate("text",x=coord_x_1,y=y_max,hjust=1,vjust=1,label=format(round(med_pro,2),nsmall = 2),color="darkblue")+annotate("text",x=coord_x_2,y=y_max,hjust=0,vjust=1,label=annotation,fontface=2)
 }
-fitPoids<-function(t,poids,method){
+fitPoids<-function(t,poids,method,dpa_analyse){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
   gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
@@ -118,8 +120,8 @@ fitPoids<-function(t,poids,method){
     g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- wp3
   }
-  g
-  return(mu(t,method,mu.list,final.form))
+  print(g)
+  return(mu(t,method,mu.list,final.form,dpa_analyse))
 # 
 #   data_prueba<-select_if(total_data[1:5,],is.numeric)
 #   t<-t(as.matrix(seq(1,27)))
@@ -183,15 +185,16 @@ contois<-function(time,state,par) {
   dy<-as.numeric(r)*as.numeric(y)*(1-as.numeric(y)/as.numeric(K))/(as.numeric(K)+(as.numeric(R)-1)*y)
   list(dy)
 }
-
 normaMean<-function(proteo_data,mrna_data,ks){
   RNA<-mrna_data/mean(mrna_data,na.rm = T)
   PROT<-proteo_data/mean(proteo_data,na.rm = T)
   ks_norm<-ks*mean(mrna_data,na.rm = T)/mean(proteo_data,na.rm = T)
   return(list("mrna"=RNA,"prot"=PROT,"ks"=ks_norm))
 }
-
-mu<-function(dpa,method,parlist,formula_fitting){
+mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
+  if (exists("dpa_analyse")){
+    dpa<-dpa_analyse
+  }
   if (method=="verhulst"){
     coefs<-coef(formula_fitting)
     y_fit<-fitted(formula_fitting)
@@ -224,23 +227,20 @@ mu<-function(dpa,method,parlist,formula_fitting){
   if (method=="double_sig"){
     val<-parlist$par2*exp(-parlist$par2*(parlist$par2*(dpa-parlist$par3)))/(1+exp(-parlist$par2*(dpa-parlist$par3)))+parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par2*(dpa-parlist$par3)))
   }
-  return(val)
+  return(data.frame("t"=unique(dpa),"Taux"=unique(val)))
 }
-fit_testRNA<-function(dpa,mrna){
-  model3<-lm(mrna~poly(dpa,3,raw = T))
-  model6<-lm(mrna~poly(dpa,6,raw = T))
+fit_testRNA<-function(dpa,mrna,fitR){
+  model3<-polyfit(dpa,mrna,3)
+  model6<-polyfit(dpa,mrna,6)
+  model_log<-polyfit(dpa,log(mrna),3)
   
 }
-# fitPoids<-function(xi,yi,opt_func){
-#   switch (opt_func,
-#     verhulst = verhulstFunc(xi,yi)
-#   )
-# }
 
 # test_data<-lista[[30]]
 # 
-poids<-read_csv("poids_test.csv",col_names = c("DPA","Poids"))
-
+poids<-read_csv("poids_test.csv",col_names=c("DPA","Poids"))
+poids_kiwi<-read_xlsx("Kiwi_FW.xlsx",sheet = "Kiwifruit")
+per_dpa<-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-taux_croi<-fitPoids(poids$DPA,poids$Poids,"log_poly")
+taux_croi<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig",per_dpa)
