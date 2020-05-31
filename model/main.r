@@ -121,7 +121,7 @@ fitPoids<-function(t,poids,method,dpa_analyse){
     mu.list <- wp3
   }
   print(g)
-  return(mu(t,method,mu.list,final.form,dpa_analyse))
+  return(list("coefs"=mu.list,"formula"=final.form))
 # 
 #   data_prueba<-select_if(total_data[1:5,],is.numeric)
 #   t<-t(as.matrix(seq(1,27)))
@@ -133,6 +133,7 @@ fitPoids<-function(t,poids,method,dpa_analyse){
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
   # colnames(t)<-"t"
   # colnames(y)<-"y"
+  
   fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=t,"y"=y),col.names = c("t","y")),upper = ub,lower = lb)
   return(fitting)
 }
@@ -192,9 +193,9 @@ normaMean<-function(proteo_data,mrna_data,ks){
   return(list("mrna"=RNA,"prot"=PROT,"ks"=ks_norm))
 }
 mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
-  if (exists("dpa_analyse")){
-    dpa<-dpa_analyse
-  }
+  # if (exists("dpa_analyse")){
+  #   dpa<-dpa_analyse
+  # }
   if (method=="verhulst"){
     coefs<-coef(formula_fitting)
     y_fit<-fitted(formula_fitting)
@@ -221,31 +222,86 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   if (method=="log_poly"){
     d_par<-polyder(parlist)
     val<-polyval(d_par,dpa)/std(dpa)  
-    browser()
+    
     ## Acabar...
   }
   if (method=="double_sig"){
+    
     val<-parlist$par2*exp(-parlist$par2*(parlist$par2*(dpa-parlist$par3)))/(1+exp(-parlist$par2*(dpa-parlist$par3)))+parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par2*(dpa-parlist$par3)))
   }
-  return(data.frame("t"=dpa,"Taux"=val))
+  return(val)
 }
 fit_testRNA<-function(dpa,mrna,fitR){
   model3<-polyfit(dpa,mrna,3)
   model6<-polyfit(dpa,mrna,6)
   model_log<-polyfit(dpa,log(mrna),3)
   if (fitR=="3_deg"){
-    val<-polyval(model3,dpa)
+    ret<-model3
   }
   if (fitR=="6_deg"){
-    val<-polyval(model6,dpa)
+    ret<-model6
   }
   if (fitR=="3_deg_log"){
-    val<-polyval(model_log,dpa)
-    val<-exp(val)
+    ret<-model_log
   }
-  return(data.frame("t"=dpa,"mRNA"=val))
+  return(ret)
+}
+solgss_Borne<-function(dpa,prot_conc,ks_min,score){
+  init_prot<-init_conc(dpa,prot_conc)
+  parInit<-list("start_prot"=init_prot$init,"ks"=ks_min*3,"kd"=ks_min*0.3)
+  lb<-c(0,0,0)
+  
+  # parMu<-linFitting(dpa,prot_conc,parInit,resol_mu,ub=NULL,lb=lb)
+  
+  parMu<-nls.lm(fn= resol_mu,time=dpa,par= parInit,lower=lb)
+  return(parMu)
+  
+}
+solmRNA<-function(dpa,coef_list,fitR){
+  val<-polyval(coef_list,dpa)
+  if (fitR=="3_deg_log"){
+      val<-exp(val)
+  }
+  return(val)
+}
+init_conc<-function(dpa,prot_conc){
+  dpa_min<-min(dpa)
+  ind<-which(dpa==dpa_min)
+  
+  if (length(ind)==1){
+    p0<-prot_conc[ind]
+    pMax<-5*p0
+    pMin<-0.1*p0
+  }
+  else{
+    p0<-mean(prot_conc[ind],na.rm = T)
+    pMin<-min(prot_conc[ind])-std(prot_conc)*2
+    pMax<-max(prot_conc[ind])+std(prot_conc)*2
+  }
+  return(list("init"=p0,"min"=pMin,"max"=pMax))
 }
 
+resol_mu<-function(parList,time){
+  u_time<-unique(time)
+  y0<-parList$start_prot
+  if (is.na(y0)) print(y0)
+  
+  parList$start_prot<-NULL
+  # data_out<-odeFitting(time,y0,eqDifPrinc,parlist = parList)
+  
+  data_out<-lsode(y=c(y=y0),u_time,func = eqDifPrinc,parms = parList,maxsteps = 1e5)
+  
+  return(data_out)
+}
+
+eqDifPrinc<-function(time,state,par){
+  y<-state["y"]
+  ks<-par["ks"]
+  kd<-par["kd"]
+  
+  val<-unlist(ks)*solmRNA(time,fittedmrna,"3_deg")-(unlist(kd)+mu(dpa=c(time),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*y
+  return(list(val))
+}
 # test_data<-lista[[30]]
 # 
 poids<-read_csv("poids_test.csv",col_names=c("DPA","Poids"))
@@ -253,11 +309,19 @@ poids_kiwi<-read_xlsx("Kiwi_FW.xlsx",sheet = "Kiwifruit")
 per_dpa<-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-taux_croi<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig",per_dpa)
+coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig",per_dpa)
+poids_coef<<-coef_poids$coefs
+formula_poids<<-coef_poids$formula
 ksmin=3*4*3*3.6*24
-
+score=0
+cont<-0
 for (el in test_list){
+  cont<-cont+1
   norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
-  fittedmrna<-fit_testRNA(el$DPA,norm_data$mrna,"3_deg")
-  g<-ggplot(data = fittedmrna,aes(x=t,y=mRNA))+geom_line()+theme
+  fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,"3_deg")
+  par_k<-solgss_Borne(el$DPA,norm_data$prot,ksmin,score)
+  if (!is.na(par_k$diag$ks)){
+    test_list[[cont]]$res_ks<-par_k$diag$ks
+    test_list[[cont]]$res_kd<-par_k$diag$kd
+  }
 }
