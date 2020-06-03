@@ -1,6 +1,6 @@
-list.of.packages <- c("deSolve", "minpacl.lm","readxl","reshape2","pracma","ggplot2","readr")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
 library("deSolve")
 library(minpack.lm)
@@ -9,6 +9,8 @@ library("reshape2")
 library(pracma)
 library(ggplot2)
 library(readr)
+library(getopt, quietly=TRUE, warn.conflicts=FALSE)
+
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 

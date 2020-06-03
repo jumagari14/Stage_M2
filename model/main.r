@@ -1,7 +1,13 @@
 
 # setwd("D:/Stage M2/Stage_M2/model/")
-setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/model/")
 source("functions.r")
+
+spec <- matrix(c(
+  "workDir", "o", 1, "character"),
+  byrow=TRUE, ncol=4)
+opt <- getopt(spec)
+setwd(opt$workDir)
+
 # test_data<-lista[[30]]
 # 
 poids<-read_csv("poids_test.csv",col_names=c("DPA","Poids"))
@@ -9,7 +15,7 @@ poids_kiwi<-read_xlsx("Kiwi_FW.xlsx",sheet = "Kiwifruit")
 per_dpa<-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-test_list<-sample(test_list,5)
+# test_list<-sample(test_list,5)
 coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig",per_dpa)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
