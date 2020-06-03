@@ -67,6 +67,7 @@ combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   g1+annotate("text",x=coord_x_1,y=y_max,hjust=1,vjust=1,label=format(round(med_pro,2),nsmall = 2),color="darkblue")+annotate("text",x=coord_x_2,y=y_max,hjust=0,vjust=1,label=annotation,fontface=2)
 }
 fitPoids<-function(t,poids,method,dpa_analyse){
+  browser()
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
   gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
@@ -230,13 +231,14 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   if (method=="double_sig"){
     
     val<-parlist$par2*exp(-parlist$par2*(parlist$par2*(dpa-parlist$par3)))/(1+exp(-parlist$par2*(dpa-parlist$par3)))+parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par6*(dpa-parlist$par7)))
+    val<-log(val)
   }
   return(val)
 }
 fit_testRNA<-function(dpa,mrna,fitR){
   model3<-polyfit(dpa,mrna,3)
   model6<-polyfit(dpa,mrna,6)
-  model_log<-polyfit(dpa,log(mrna),3)
+  model_log<-polyfit(dpa,log10(mrna),3)
   if (fitR=="3_deg"){
     ret<-model3
   }
