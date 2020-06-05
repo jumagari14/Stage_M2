@@ -66,8 +66,7 @@ combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   y_max<-(ggplot_build(g1)$layout$panel_scales_y[[1]]$range$range)[2]
   g1+annotate("text",x=coord_x_1,y=y_max,hjust=1,vjust=1,label=format(round(med_pro,2),nsmall = 2),color="darkblue")+annotate("text",x=coord_x_2,y=y_max,hjust=0,vjust=1,label=annotation,fontface=2)
 }
-fitPoids<-function(t,poids,method,dpa_analyse){
-  browser()
+fitPoids<-function(t,poids,method){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
   gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
@@ -105,7 +104,79 @@ fitPoids<-function(t,poids,method,dpa_analyse){
     # print(fitted(cont_fit))
   }
   if (method=="double_sig"){
-    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=40,"par2"=1,"par3"=20,"par4"=1,"par5"=100,"par6"=2,"par7"=45),formula_fit = doubl_sig,ub=c(70,Inf,25,2,110,Inf,55),lb=c(20,0,15,0.1,60,0,40))
+    parlist = list("par1"=48,"par2"=0.144,"par3"=35,"par4"=0.4,"par5"=48,"par6"=0.042,"par7"=90)
+    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = doubl_sig,ub=NULL,lb=NULL)
+    g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
+    mu.list <- lapply(mu.list, unname)
+    final.form<-db_sigFit
+    # plot(t,poids)
+    # lines(t,fitted(db_sigFit),col=2,lwd=2)
+    
+  }
+  if (method=="log_poly"){
+    # poly_model<-lm(log(unlist(poids))~poly(unlist(t),3,raw = T))
+    # new_y<-predict.lm(poly_model,data.frame(t))
+    wp3<-polyfit(unlist(t),log(unlist(poids)),3)
+    new_y<-polyval(wp3,unlist(t))
+    new_y<-exp(new_y)
+    g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    mu.list <- wp3
+  }
+  print(g)
+  return(list("coefs"=mu.list,"formula"=final.form))
+  # 
+  #   data_prueba<-select_if(total_data[1:5,],is.numeric)
+  #   t<-t(as.matrix(seq(1,27)))
+  #   y<-as.matrix(data_prueba[2,1:27])
+  #   
+  #   fitting<-nlsLM(formula =formula_fit,start = parlist,data = data.frame("t"=t,"y"=y))
+} 
+fitPoids_v2<-function(t,poids,method,listpar){
+  t<-as.numeric(pull(t))
+  poids<-as.numeric(pull(poids))
+  poids<-poids[!is.na(poids)]
+  t<-t[!is.na(t)]
+  
+  verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
+  dverhulst_form<-y~r*y*(1-y/K)
+  gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
+  logisgen<-y~par1*(1+exp((par2-t)/par3)^(-1/par4))
+  empirique<-y~exp(par1*(t-par3)/(par2+t-par3))
+  simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
+  doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
+  g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
+  if (method=="verhulst"){
+    ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=0.1,"par2"=100,"par3"=1),formula_fit  = verhulst,ub=NULL,lb=NULL)
+    g<-g+geom_line(aes(x=unlist(t),y=fitted(ver_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    mu.list <- split(coef(ver_fit), names(coef(ver_fit)))
+    mu.list <- lapply(mu.list, unname)
+    final.form<-ver_fit
+  }
+  if (method=="gompertz"){
+    gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = gompertz,ub=NULL,lb=NULL)
+    g<-g+geom_line(aes(x=unlist(t),y=fitted(gom_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    mu.list <- split(coef(gom_fit), names(coef(gom_fit)))
+    final.form<-gom_fit
+  }
+  if (method=="empirique"){
+    emp_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=5.38,"par2"=8,"par3"=7),formula_fit = empirique,ub=NULL,lb=NULL)
+    g<-g+geom_line(aes(x=unlist(t),y=fitted(emp_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    mu.list <- split(coef(emp_fit), names(coef(emp_fit)))
+    mu.list <- lapply(mu.list, unname)
+    final.form<-emp_fit
+  }
+  if (method=="contois"){
+    parList<-c(r=5,K=2,R=100)
+    y0<-1
+    dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
+    print(dev_poids)
+    # cont_fit<-linFitting(as.vector(t),y0,parlist = parList,formula_fit = odeFitting,ub=c(Inf,Inf,130,2),lb=c(0,0,90,0.05))
+    # print(fitted(cont_fit))
+  }
+  if (method=="double_sig"){
+    browser()
+    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=NULL,lb=NULL)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
     mu.list <- lapply(mu.list, unname)
@@ -134,9 +205,6 @@ fitPoids<-function(t,poids,method,dpa_analyse){
 } 
 
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
-  # colnames(t)<-"t"
-  # colnames(y)<-"y"
-  
   fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=t,"y"=y),col.names = c("t","y")),upper = ub,lower = lb)
   return(fitting)
 }
@@ -164,7 +232,7 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
     return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
   }
   
-  if (grepl(".*csv",data,perl = T)){
+  else if (grepl(".*csv",data,perl = T)){
     total_data<-read_csv(file = data,col_names = F)
     if (poids) colnames(total_data)<-c("DPA","Poids")
     else colnames(total_data)<-total_data[1,]

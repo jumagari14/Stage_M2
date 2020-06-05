@@ -93,9 +93,8 @@ library(gridExtra)
 library(cowplot)
 library(egg)
 
-source("main.r")
 # source("input.r")
-source("../../Analyse_stats/functions.r")
+source("functions.r")
 
 ui <- fluidPage(theme = shinytheme("lumen"),
                 navbarPage("Protein turnover model",id="tabs",
@@ -106,14 +105,19 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                     actionButton("disp_distr","Show distributions"),
                                     plotOutput("distr_plot"),
                                     plotOutput("distr_stade")
-                                    ),
+                            ),
                            tabPanel("Weight fitting",
                                     fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
                                     selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Contois"="contois","Empiric"="empirique","Noyau"="seed","Log polynomial"="log_poly","Double sigmoid"="double_sig")),
                                     uiOutput("doubl_sig"),
-                                    uiOutput("log_poly"),
+                                    uiOutput("gompertz"),
                                     actionButton("fit_op","Fit"),
                                     plotOutput("fitplot")
+                            ),
+                           tabPanel("mRNA fitting and calculation",
+                                    textInput("ksmin","Value of ksmin",value =3*4*3*3.6*24),
+                                    selectInput("fit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
+                                    actionButton("run_loop","Run calculation"))
                            ))
   # useShinyjs()
   # uiOutput("header"),
@@ -121,10 +125,11 @@ ui <- fluidPage(theme = shinytheme("lumen"),
   # actionButton("prevBtn", "< Previous"),
   # actionButton("nextBtn", "Next >")
                 )
-)
+
 
 server <- function(input, output, session) {
   fit_op<-reactiveValues(data=NULL)
+  parList<-reactiveValues(data=NULL)
   output$mult_files<-renderUI({
     if (!input$multiple){
     tagList(fileInput("prot_file","Choose protein file"),
@@ -139,47 +144,104 @@ server <- function(input, output, session) {
               fileInput("data_file","Choose xls/xlsx file",accept=c(".xls",".xlsx")))
     }
   })
+    
   output$doubl_sig<-renderUI({
     if (input$method_we=="double_sig"){
-      tagList(textInput("par4_sig","Enter value of par4",value = 0.4),
-      textInput("par1_sig","Enter value of par1",value = 48),
-      textInput("par2_sig","Enter value of par2",value = 0.144),
-      textInput("par3_sig","Enter value of par3",value = 35),
-      textInput("par5_sig","Enter value of par5",value = 48),
-      textInput("par6_sig","Enter value of par6",value = 0.042),
-      textInput("par7_sig","Enter value of par7",value = 90))
+    # print("Jaja")
+    tagList(textInput("par1_sig","Enter value of par1",value = 48),
+            textInput("par2_sig","Enter value of par2",value = 0.144),
+            textInput("par3_sig","Enter value of par3",value = 35),
+            textInput("par4_sig","Enter value of par4",value = 0.4),
+            textInput("par5_sig","Enter value of par5",value = 48),
+            textInput("par6_sig","Enter value of par6",value = 0.042),
+            textInput("par7_sig","Enter value of par7",value = 90))
     }
   })
+  output$gompertz<-renderUI({
+    if (input$method_we=="gompertz"){
+        tagList(textInput("par1_sig","Enter value of par1",value =0.065),
+                textInput("par2_sig","Enter value of par2",value = 114.39),
+                textInput("par3_sig","Enter value of par3",value = 0.52))
+      }
+    })
+  
   observe({
     if(!is.null(input$data_file)){
       inFile<-input$data_file
       list_data<-loadData(inFile$datapath,input$rna_tab,input$protein_tab,poids=F)
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
-      clean_mrna_data<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
-      clean_prot_data<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
-      
-      observeEvent(input$disp_distr,{
-        print("Plotting...")
-        output$distr_plot<-renderPlot({print(combineGraphs(clean_mrna_data,clean_prot_data,"",moyenne = T))})
-        print("Finished")
-        })
-
+      test_list<-list_data$parse
+      test_list<<-sample(test_list,5)
+      clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
+      clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
     }
-  })
+  })    
+  observeEvent(input$disp_distr,{
+    print("Plotting...")
+    output$distr_plot<-renderPlot({print(combineGraphs(clean_mrna_data,clean_prot_data,"",moyenne = T))})
+    print("Finished")
+    })
+
+# parList<-reactiveValues()
+# observe({
+#   for (i in reactiveValuesToList(input)){
+#   print(i)
+#   if (grepl("par[1-9]+_sig",i,perl = T)){
+#     newlist[[input[[i]]]]<-input[[i]]
+#   }
+# }
+# # })
   
 
   observeEvent(input$fit_op,{
+    parList<<-reactive({
+      x<-reactiveValuesToList(input)
+      x_ind<-grep("par*",names(x))
+      newlist<-vector("list",length(x_ind))
+      names(newlist)<-names(x[x_ind])
+      for (el in names(newlist)){
+        newlist[[el]]<-as.numeric(as.character(input[[el]]))
+      }
+      names(newlist)<-gsub("_sig","",names(newlist))
+      newlist<-newlist[order(names(newlist))]
+      newlist
+    })
     fit_op$state<-TRUE
     inFile<-input$weight_data
     days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
-    poids_data<-loadData(inFile$datapath,"","",poids=T)
+    poids_data<<-loadData(inFile$datapath,"","",poids=T)
     print("Fitting...")
   })
   output$fitplot<-renderPlot({
       req(fit_op$state)
-      fitPoids(poids_data[,1],poids_data[,2],input$method_we,days_kiwi)
+      coefs_poids<-fitPoids_v2(poids_data[,1],poids_data[,2],input$method_we,parList())
+      # poids_coef<<-coefs_poids$coefs
+      # formula_poids<<-coefs_poids$formula
+      # print(formula_poids)
+      # fit_op$state<-FALSE
     })
+  observeEvent(input$run_loop,{
+    if (input$fit_mrna!=""){
+      ksmin=input$ksmin
+      score=0
+      cont<-0
+      for (el in test_list){
+        tryCatch({
+          cont<-cont+1
+          norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
+          fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,"3_deg")
+          par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
+          if (!is.null(par_k)){
+            test_list[[cont]]$SOL<-par_k
+            # write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
+          }
+        },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+        
+      }
+      
+    }
+  })
 }
 
 if (interactive()) shinyApp(ui = ui, server = server)
