@@ -299,7 +299,6 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   if (method=="double_sig"){
     
     val<-parlist$par2*exp(-parlist$par2*(parlist$par2*(dpa-parlist$par3)))/(1+exp(-parlist$par2*(dpa-parlist$par3)))+parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par6*(dpa-parlist$par7)))
-    val<-log(val)
   }
   return(val)
 }

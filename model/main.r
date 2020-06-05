@@ -18,10 +18,10 @@ test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Tr
 test_list<-test_data$parse
 test_list<-sample(test_list,5)
 coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig")
-poids_coef<<-coef_poids$coefs
+poids_coef2<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
-# val_mu<-mu(c(poids_kiwi$DPA),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)
-# plot(poids_kiwi$DPA,val_mu,"l")
+val_mu<-mu(c(poids_kiwi$DPA),"double_sig",poids_coef2,formula_poids,dpa_analyse = NULL)
+plot(poids_kiwi$DPA,val_mu,"l")
 ksmin=3*4*3*3.6*24
 score=0
 cont<-0
