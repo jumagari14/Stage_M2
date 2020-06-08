@@ -18,9 +18,9 @@ test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Tr
 test_list<-test_data$parse
 test_list<-sample(test_list,5)
 coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig")
-poids_coef2<<-coef_poids$coefs
+poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
-val_mu<-mu(c(poids_kiwi$DPA),"double_sig",poids_coef2,formula_poids,dpa_analyse = NULL)
+val_mu<-mu(c(poids_kiwi$DPA),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)
 plot(poids_kiwi$DPA,val_mu,"l")
 ksmin=3*4*3*3.6*24
 score=0
@@ -32,10 +32,19 @@ for (el in test_list){
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,"3_deg")
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
-    if (!is.null(par_k)){
-      test_list[[cont]]$SOL<-par_k
-      write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
+    X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
+    diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
+    browser()
+    rho<-matrice_corr(X,length(norm_data$prot),diff)
+    para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+    if (any(para_min$par<0)){
+      init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
+      para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
     }
+    # if (!is.null(par_k)){
+    #   test_list[[cont]]$SOL<-par_k
+    #   write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
+    # }
   },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
 }

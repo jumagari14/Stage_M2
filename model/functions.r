@@ -2,10 +2,10 @@ list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggpl
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
-library("deSolve")
+library(deSolve)
 library(minpack.lm)
-library("readxl")
-library("reshape2")
+library(readxl)
+library(reshape2)
 library(pracma)
 library(ggplot2)
 library(readr)
@@ -175,7 +175,6 @@ fitPoids_v2<-function(t,poids,method,listpar){
     # print(fitted(cont_fit))
   }
   if (method=="double_sig"){
-    browser()
     db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=NULL,lb=NULL)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
@@ -194,8 +193,7 @@ fitPoids_v2<-function(t,poids,method,listpar){
     g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- wp3
   }
-  print(g)
-  return(list("coefs"=mu.list,"formula"=final.form))
+  return(list("coefs"=mu.list,"formula"=final.form,"graph"=g))
   # 
   #   data_prueba<-select_if(total_data[1:5,],is.numeric)
   #   t<-t(as.matrix(seq(1,27)))
@@ -350,7 +348,9 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     resnorm<-c(parMu$ssq,parMu2$ssq,parMu3$ssq,parMu4$ssq)
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
+    errg<-sqrt(resnorm)/norm(prot_conc,"2")
     err_mes<-scoreErreur(error)
+    err_mes[["errg"]]<-errg
     print(err_mes$score)
     return(list("solK"=parmu,"opt_eval"=opt_setp,"error"=err_mes))
   }
@@ -456,7 +456,6 @@ init_conc<-function(dpa,prot_conc){
   }
   return(list("init"=p0,"min"=pMin,"max"=pMax))
 }
-
 resol_mu<-function(parList,time){
   u_time<-unique(time)
   y0<-parList[["start_prot"]]
@@ -474,11 +473,56 @@ resol_mu<-function(parList,time){
   data_out<-data_out[,-1]
   return(data_out)
 }
-
 eqDifPrinc<-function(time,state,par){
   y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
   val<-unlist(ks)*solmRNA(time,fittedmrna,"3_deg")-(unlist(kd)+mu(dpa=c(time),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*y
   return(list(val))
+}
+matrice_sens<-function(t,parlist){
+  parList<-list("y1"=parlist[["start_prot"]],"y2"=1,"y3"=0,"y4"=0)
+  t<-unique(t)
+  data_out<-ode(y=c(y=unlist(parList)),t,func = derive,parms = parlist,method = "ode45")
+  return(as.matrix(data_out[,-c(1,2)]))
+}
+derive<-function(t,s,par){
+  ks<-par[["ks"]]
+  kd<-par[["kd"]]
+
+  
+  ds1st<-ks*solmRNA(t,fittedmrna,"3_deg")-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
+  ds2st<--(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]
+  ds3st<-solmRNA(t,fittedmrna,"3_deg")-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
+  ds4st<-s[["y.y1"]]-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y4"]]
+  return(list(c(ds1st,ds2st,ds3st,ds4st)))
+  
+  
+}
+matrice_corr<-function(X,nel,diff){
+  U<-t(X) %*% X
+  cov<-diff/(nel-3)*inv(U)
+  rho<-matrix(zeros(ncol(U)),nrow = nrow(U))
+  for (i in (seq(1,nrow(U)))){
+    for (j in (seq(1,ncol(U)))){
+      rho[i,j]<-cov[i,j]/sqrt(cov[i,i]*cov[j,j])
+    }
+  }
+  return(rho)
+}
+minSquares<-function(parlist,time,exp_data){
+  res<-resolNewEq(parlist,time)
+  ret_res<-norm(res-exp_data,"2")^2
+  return(ret_res)
+}
+
+resolNewEq<-function(parlist,time){
+  data_out<-ode(y=c(parlist[["start_prot"]]),time,func=eqDifPrinc2,parms = parlist,method = "ode45")
+  return(data_out[,-1])
+}
+eqDifPrinc2<-function(t,s,par){
+  ks<-par[["ks"]]
+  K<-par[["kd"]]/ks
+  y_res<-ks*(solmRNA(t,fittedmrna,"3_deg")-K*s)-mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)*s
+  return(list(y_res))
 }
