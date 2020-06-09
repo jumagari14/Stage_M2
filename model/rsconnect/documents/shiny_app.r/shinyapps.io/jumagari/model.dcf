@@ -1,0 +1,12 @@
+name: model
+title: model
+username:
+account: jumagari
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2431419
+bundleId: 3247639
+url: https://jumagari.shinyapps.io/model/
+when: 1591714836.33204
+asMultiple: FALSE
+asStatic: FALSE

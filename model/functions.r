@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
@@ -10,6 +10,8 @@ library(pracma)
 library(ggplot2)
 library(readr)
 library(getopt, quietly=TRUE, warn.conflicts=FALSE)
+library(NlcOptim)
+library(V8)
 
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
@@ -99,7 +101,6 @@ fitPoids<-function(t,poids,method){
     parList<-c(r=5,K=2,R=100)
     y0<-1
     dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
-    print(dev_poids)
     # cont_fit<-linFitting(as.vector(t),y0,parlist = parList,formula_fit = odeFitting,ub=c(Inf,Inf,130,2),lb=c(0,0,90,0.05))
     # print(fitted(cont_fit))
   }
@@ -170,7 +171,6 @@ fitPoids_v2<-function(t,poids,method,listpar){
     parList<-c(r=5,K=2,R=100)
     y0<-1
     dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
-    print(dev_poids)
     # cont_fit<-linFitting(as.vector(t),y0,parlist = parList,formula_fit = odeFitting,ub=c(Inf,Inf,130,2),lb=c(0,0,90,0.05))
     # print(fitted(cont_fit))
   }
@@ -331,19 +331,17 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     parInit2<-list("start_prot"=init_prot$init,"ks"=ks_min,"kd"=ks_min*0.1)
     parInit3<-list("start_prot"=init_prot$init,"ks"=ks_min*5,"kd"=ks_min*5)
     parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
-    lb<-c(0,0,0)
+
     
-    # parMu<-linFitting(dpa,prot_conca,parInit,resol_mu,ub=NULL,lb=lb)
-    
-    # parMu1<-nls.lm(fn= resFunc,time=dpa,par= parInit1,lower=lb,true_prot_conc=prot_conc)
-    # parMu2<-nls.lm(fn= resFunc,time=dpa,par= parInit2,lower=lb,true_prot_conc=prot_conc)
-    # parMu3<-nls.lm(fn= resFunc,time=dpa,par= parInit3,lower=lb,true_prot_conc=prot_conc)
-    # parMu4<-nls.lm(fn= resFunc,time=dpa,par= parInit4,lower=lb,true_prot_conc=prot_conc)
     parMu<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit),xdata = dpa,ydata = prot_conc)
+    sol1<-resol_mu(parMu$x,dpa)
     parMu2<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit2),xdata = dpa,ydata = prot_conc)
+    sol2<-resol_mu(parMu2$x,dpa)
     parMu3<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit3),xdata = dpa,ydata = prot_conc)
+    sol3<-resol_mu(parMu3$x,dpa)
     parMu4<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit4),xdata = dpa,ydata = prot_conc)
-    
+    sol4<-resol_mu(parMu4$x,dpa)
+    sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(parMu$x,parMu2$x,parMu3$x,parMu4$x)
     resnorm<-c(parMu$ssq,parMu2$ssq,parMu3$ssq,parMu4$ssq)
     opt_setp<-evalOptim(parmu)
@@ -351,8 +349,7 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     errg<-sqrt(resnorm)/norm(prot_conc,"2")
     err_mes<-scoreErreur(error)
     err_mes[["errg"]]<-errg
-    print(err_mes$score)
-    return(list("solK"=parmu,"opt_eval"=opt_setp,"error"=err_mes))
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol))
   }
   
 }
@@ -363,28 +360,22 @@ evalOptim<-function(parmu){
   parmu4<-as.vector(parmu[,4])
   
   if (all(pmax(parmu1,parmu2,na.rm = T)>1e-4)){
-    print("Ecart rel")
     ecart12<-abs(parmu1-parmu2)/pmax(parmu1,parmu2,na.rm=T)
   }
   else{
     ecart12<-abs(parmu1-parmu2)
-    print("Ecart1")
   }
   if (all(pmax(parmu2,parmu3,na.rm = T)>1e-4)){
-    print("Ecart rel 2")
     ecart23<-abs(parmu2-parmu3)/pmax(parmu2,parmu3,na.rm=T)
   }
   else{
     ecart23<-abs(parmu2-parmu3)
-    print("Ecart1 ")
   }
   if (all(pmax(parmu3,parmu4,na.rm = T)>1e-4)){
-    print("Ecart rel 3")
     ecart34<-abs(parmu3-parmu4)/pmax(parmu3,parmu4,na.rm=T)
   }
   else{
     ecart34<-abs(parmu3-parmu4)
-    print("Ecart1")
   }
   if (all(ecart12<5e-2) & (all(ecart23<5e-2)) & (all(ecart34<5e-2))){
     mess<-"Optimisation converges to 3 indentical values"
@@ -429,9 +420,6 @@ scoreErreur<-function(erreur){
   }
   score<-floor((0.5-erreur)*20)
   return(list("score"=score,"message"=mess))
-}
-resFunc<-function(time,parList,true_prot_conc){
-  return(true_prot_conc-resol_mu(parList,time))  
 }
 solmRNA<-function(dpa,coef_list,fitR){
   val<-polyval(coef_list,dpa)
@@ -515,10 +503,16 @@ minSquares<-function(parlist,time,exp_data){
   ret_res<-norm(res-exp_data,"2")^2
   return(ret_res)
 }
-
 resolNewEq<-function(parlist,time){
   data_out<-ode(y=c(parlist[["start_prot"]]),time,func=eqDifPrinc2,parms = parlist,method = "ode45")
   return(data_out[,-1])
+}
+plotFitProt<-function(dpa,exp_data,fit_data){
+  merg_data<-as.data.frame(cbind(dpa,exp_data,fit_data))
+  melt_data<-melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
+  
+  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))
+  return(g)
 }
 eqDifPrinc2<-function(t,s,par){
   ks<-par[["ks"]]
