@@ -8,6 +8,7 @@ library(readxl)
 library(reshape2)
 library(pracma)
 library(ggplot2)
+library(dplyr)
 library(readr)
 library(getopt, quietly=TRUE, warn.conflicts=FALSE)
 library(NlcOptim)
@@ -66,7 +67,77 @@ combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   coord_x_1<-x_max-(x_max-med_pro)*0.3
   coord_x_2<-x_min*0.2+x_min
   y_max<-(ggplot_build(g1)$layout$panel_scales_y[[1]]$range$range)[2]
-  g1+annotate("text",x=coord_x_1,y=y_max,hjust=1,vjust=1,label=format(round(med_pro,2),nsmall = 2),color="darkblue")+annotate("text",x=coord_x_2,y=y_max,hjust=0,vjust=1,label=annotation,fontface=2)
+  g1<-g1+annotate("text",x=coord_x_1,y=y_max,hjust=1,vjust=1,label=format(round(med_pro,2),nsmall = 2),color="darkblue")+annotate("text",x=coord_x_2,y=y_max,hjust=0,vjust=1,label=annotation,fontface=2)+xlab(bquote("Concentration "~(fmolgFW^-1)))+ylab("Number of occurences")
+}
+plotDensity<-function(dataframe, title,lab_x,lab_y,moyenne){
+  theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
+  if (moyenne){
+    melted<-melt(colMeans(dataframe,na.rm = T))
+  }
+  else{
+    melted<-melt(dataframe)
+  }
+  med<-median(melted$value[melted$value>0],na.rm = T)
+  g<-ggplot()+geom_histogram(data=melted,aes(value),bins = 30)+scale_x_log10()+xlab(lab_x)+
+    ylab(lab_y) +theme+ggtitle(title)+
+    geom_vline(xintercept=med,linetype="dotdash",color="red")
+  x_min<-10^(ggplot_build(g)$layout$panel_scales_x[[1]]$range$range)[1]
+  coord_x<-(med-x_min)*0.3+x_min
+  y_max<-(ggplot_build(g)$layout$panel_scales_y[[1]]$range$range)[2]
+  r<-g+annotate("text",x=coord_x,y=y_max,hjust=1,vjust=1,label=format(round(med,3),nsmall = 3),color="red")
+  return(r)
+}
+paramListInput<-function(id,method){
+  ns<-NS(id)
+  tagList(uiOutput(ns("listpar")))
+}
+paramList<-function(input,output,session,method){
+  ns <- session$ns
+  if (method=="verhulst"){
+    output$listpar<-renderUI({
+      tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.1),
+      textInput(ns("par2_sig"),"Enter value of b",value = 100),
+      textInput(ns("par3_sig"),"Enter value of c",value = 1))})
+  }
+  if (method=="double_sig"){
+    output$listpar<-renderUI({
+      tagList(textInput(ns("par1_sig"),"Enter value of a",value = 48),
+      textInput(ns("par2_sig"),"Enter value of b",value = 0.144),
+      textInput(ns("par3_sig"),"Enter value of c",value = 35),
+      textInput(ns("par4_sig"),"Enter value of d",value = 0.4),
+      textInput(ns("par5_sig"),"Enter value of e",value = 48),
+      textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
+      textInput(ns("par7_sig"),"Enter value of g",value = 90))})
+  }
+  if (method=="empirique"){
+    output$listpar<-renderUI({
+      tagList(textInput(ns("par1_sig"),"Enter value of a",value =5.38),
+      textInput(ns("par2_sig"),"Enter value of b",value = 8),
+      textInput(ns("par3_sig"),"Enter value of c",value = 7))})
+  }
+  if (method=="gompertz"){
+    output$listpar<-renderUI({
+      tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.065),
+      textInput(ns("par2_sig"),"Enter value of b",value = 114.39),
+      textInput(ns("par3_sig"),"Enter value of c",value = 0.52))})
+  }
+  if (method=="log_poly"){
+    output$listpar<-renderUI({
+      tagList()})
+  }
+  parList<-reactive({
+    x<-reactiveValuesToList(input)
+    x_ind<-grep("par[1-9]+",names(x),perl = T)
+    newlist<-vector("list",length(x_ind))
+    names(newlist)<-names(x[x_ind])
+    for (el in names(newlist)){
+      newlist[[el]]<-as.numeric(as.character(input[[el]]))
+    }
+    names(newlist)<-gsub("_sig","",names(newlist))
+    newlist<-newlist[order(names(newlist))]
+    newlist
+  })
+  return(parList)
 }
 fitPoids<-function(t,poids,method){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
@@ -148,14 +219,14 @@ fitPoids_v2<-function(t,poids,method,listpar){
   doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
   g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
   if (method=="verhulst"){
-    ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=0.1,"par2"=100,"par3"=1),formula_fit  = verhulst,ub=NULL,lb=NULL)
+    ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit  = verhulst,ub=NULL,lb=NULL)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(ver_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(ver_fit), names(coef(ver_fit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-ver_fit
   }
   if (method=="gompertz"){
-    gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = gompertz,ub=NULL,lb=NULL)
+    gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = gompertz,ub=NULL,lb=NULL)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(gom_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(gom_fit), names(coef(gom_fit)))
     final.form<-gom_fit
@@ -187,11 +258,12 @@ fitPoids_v2<-function(t,poids,method,listpar){
   if (method=="log_poly"){
     # poly_model<-lm(log(unlist(poids))~poly(unlist(t),3,raw = T))
     # new_y<-predict.lm(poly_model,data.frame(t))
-    wp3<-polyfit(unlist(t),log(unlist(poids)),3)
-    new_y<-polyval(wp3,unlist(t))
+    wp3<-polyfit(unlist(t,use.names = F),log(unlist(poids,use.names = F)),3)
+    new_y<-polyval(wp3,unlist(t,use.names = F))
     new_y<-exp(new_y)
-    g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
+    g<-g+geom_line(aes(x=unlist(t,use.names = F),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- wp3
+    final.form<-new_y
   }
   return(list("coefs"=mu.list,"formula"=final.form,"graph"=g))
   # 
@@ -281,15 +353,15 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   }
   if (method=="contois"){
     y0<-parlist$y
-    dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
+    dev_poids<-odeFitting(as.vector(dpa),y0,parlist = parList,formula = contois)
     y_val<-dev_poids[,2]
     val<-parlist$par1*(1-y_val/parlist$par2)/(parlist$par2+(parlist$par3-1)*y_val)
   }
   if (method=="empirique"){
-    val<-parlist$par1*parlist$par2/(parlist$par2+t-parlist$par3)^2
+    val<-parlist$par1*parlist$par2/(parlist$par2+dpa-parlist$par3)^2
   }
   if (method=="log_poly"){
-    d_par<-polyder(parlist)
+    d_par<-polyder(unlist(parlist,use.names = F))
     val<-polyval(d_par,dpa)/std(dpa)  
     
     ## Acabar...

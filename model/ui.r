@@ -32,36 +32,6 @@ library(grid)
 library(egg)
 
 # source("input.r")
-source("functions.r")
-
-parameter_tabs <- tabsetPanel(
-  tabPanel("double_sig",
-           numericInput("par1_sig","Enter value of a",value = 48),
-           numericInput("par2_sig","Enter value of b",value = 0.144),
-           numericInput("par3_sig","Enter value of c",value = 35),
-           numericInput("par4_sig","Enter value of d",value = 0.4),
-           numericInput("par5_sig","Enter value of e",value = 48),
-           numericInput("par6_sig","Enter value of f",value = 0.042),
-           numericInput("par7_sig","Enter value of g",value = 90)
-  ),
-  tabPanel("gompertz",
-           numericInput("par1_sig","Enter value of a",value =0.065),
-           numericInput("par2_sig","Enter value of b",value = 114.39),
-           numericInput("par3_sig","Enter value of c",value = 0.52)
-  ),
-  tabPanel("verhulst",
-           numericInput("par1_sig","Enter value of a",value =0.1),
-           numericInput("par2_sig","Enter value of b",value = 100),
-           numericInput("par3_sig","Enter value of c",value = 1)
-           
-  ),
-  id = "params",
-  type = "tabs"
-  
-  # tabPanel("exponential",
-  #          numericInput("rate", "rate", value = 1, min = 0),
-  # )
-)
 
 formula_tabs<-tabsetPanel(
   tabPanel("double_sig",
@@ -74,31 +44,17 @@ formula_tabs<-tabsetPanel(
            withMathJax("$$y=\\frac{b*c}{b+(b-c)*exp^{-a*t}}$$")
            
   ),
+  tabPanel("log_poly",
+           withMathJax("")
+  ),
+  
   id = "formulas",
   type = "tabs"
-  
-  # tabPanel("exponential",
-  #          numericInput("rate", "rate", value = 1, min = 0),
-  # )
+
 )
 
 fluidPage(useShinyjs(),theme = shinytheme("lumen"),useShinyjs(),tags$style("#params { display:none; } #formulas { display:none; }"),
           extendShinyjs(text = jscode),inlineCSS(css),
-          # singleton(tags$head(HTML(
-          #   '
-          #                         <script type="text/javascript">
-          #                         $(document).ready(function() {
-          #                         // disable download at startup. data_file is the id of the downloadButton
-          #                         $("#data_file").attr("disabled", "true").attr("onclick", "return false;");
-          #                         
-          #                         Shiny.addCustomMessageHandler("download_ready", function(message) {
-          #                         $("#data_file").removeAttr("disabled").removeAttr("onclick").html(
-          #                         "<i class=\\"fa fa-download\\"></i>Download (file size: " + message.fileSize + ")");
-          #                         });
-          #                         })
-          #                         </script>
-          #                         '
-          # ))),
           navbarPage("Protein turnover model",id="tabs",
                      tabsetPanel(tabPanel("Input data",
                                           checkboxInput("multiple","Single file",value = FALSE),
@@ -110,9 +66,9 @@ fluidPage(useShinyjs(),theme = shinytheme("lumen"),useShinyjs(),tags$style("#par
                      ),
                      tabPanel("Weight fitting",
                               fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
-                              div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Contois"="contois","Empiric"="empirique","Noyau"="seed","Log polynomial"="log_poly","Double sigmoid"="double_sig"))),
-                              div(style="display:inline-block",formula_tabs),
-                              parameter_tabs,
+                              div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Empiric"="empirique","Log polynomial"="log_poly","Double sigmoid"="double_sig"))),
+                              div(style="display:inline-block",formula_tabs), ## "Contois"="contois",,"Noyau"="seed",
+                              paramListInput("params"),
                               actionButton("fit_op","Fit"),
                               plotOutput("fitplot")
                      ),
@@ -127,9 +83,4 @@ fluidPage(useShinyjs(),theme = shinytheme("lumen"),useShinyjs(),tags$style("#par
                               plotOutput("fit_prot_plot")
                      )
                      ))
-          # useShinyjs()
-          # uiOutput("header"),
-          # br(),
-          # actionButton("prevBtn", "< Previous"),
-          # actionButton("nextBtn", "Next >")
 )

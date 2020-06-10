@@ -6,12 +6,11 @@ library(grid)
 library(egg)
 
 # source("input.r")
-source("functions.r")
+
 
 function(input, output, session) {
   js$disableTab("tabRes")
   fit_op<-reactiveValues(data=NULL)
-  parList<-reactiveValues(data=NULL)
   run_calc<-reactiveValues(data=NULL)
   en_but<-reactiveValues(enable=FALSE)
   theme<<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
@@ -30,43 +29,10 @@ function(input, output, session) {
               fileInput("data_file","Choose xls/xlsx file",accept=c(".xls",".xlsx")))
     }
   })
-  
-  # output$print_form<-renderUI({
-  #   if (input$method_we=="double_sig"){
-  #     browser()
-  #     withMathJax("$$y=d+\\frac{a}{1+exp^{-b*(t-c)}}+\\frac{e}{1+exp^{-f*(t-g)}}$$")
-  #   }
-  #   if (input$method_we=="gompertz"){
-  #     withMathJax("$$y=b*exp^{\\ln(\\frac{par3}{par2})*exp^{-a*t}}$$")
-  #   }
-  #   if (input$method_we=="verhulst"){
-  #     withMathJax("$$y=\\frac{b*c}{b+(b-c)*exp^{-a*t}}$$")
-  #   }
-  # })
   observeEvent(input$method_we, {
-    updateTabsetPanel(session, "params", selected = input$method_we)
+    # updateTabsetPanel(session, "params", selected = input$method_we)
     updateTabsetPanel(session,"formulas",selected = input$method_we)
   })
-  # output$doubl_sig<-renderUI({
-  #   if (input$method_we=="double_sig"){
-  #   # print("Jaja")
-  #   tagList(textInput("par1_sig","Enter value of a",value = 48),
-  #           textInput("par2_sig","Enter value of b",value = 0.144),
-  #           textInput("par3_sig","Enter value of c",value = 35),
-  #           textInput("par4_sig","Enter value of d",value = 0.4),
-  #           textInput("par5_sig","Enter value of e",value = 48),
-  #           textInput("par6_sig","Enter value of f",value = 0.042),
-  #           textInput("par7_sig","Enter value of g",value = 90))
-  #   }
-  # })
-  # output$gompertz<-renderUI({
-  #   if (input$method_we=="gompertz"){
-  #       tagList(textInput("par1_sig","Enter value of a",value =0.065),
-  #               textInput("par2_sig","Enter value of b",value = 114.39),
-  #               textInput("par3_sig","Enter value of c",value = 0.52))
-  #     }
-  #   })
-  
   observe({
     if(!is.null(input$data_file)){
       inFile<-input$data_file
@@ -77,6 +43,25 @@ function(input, output, session) {
       test_list<<-sample(test_list,3)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
+    }
+  }) 
+  observe({
+    if((!is.null(input$prot_file)) & (!is.null(input$mrna_file))){
+      protFile<-input$prot_file
+      mrnaFile<-input$mrna_file
+      prot_data<-loadData(protFile$datapath,"","",poids=F)
+      mrna_data<-loadData(mrnaFile$datapath,"","",poids=F)
+      clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
+      clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
+      
+      total_data<-merge(mrna_data,prot_data)
+      lista<-vector("list",nrow(mrna_data))
+      for (i in seq(1,nrow(total_data))){
+        lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=t)
+        
+      }
+      # test_list<<-lista
+      test_list<<-sample(lista,3)
     }
   })    
   observeEvent(input$disp_distr,{
@@ -95,20 +80,9 @@ function(input, output, session) {
   # }
   # # })
   
-  
+  observe({
+    parList<<-callModule(paramList,"params",input$method_we)})
   observeEvent(input$fit_op,{
-    parList<<-reactive({
-      x<-reactiveValuesToList(input)
-      x_ind<-grep("par[1-9]+",names(x),perl = T)
-      newlist<-vector("list",length(x_ind))
-      names(newlist)<-names(x[x_ind])
-      for (el in names(newlist)){
-        newlist[[el]]<-as.numeric(as.character(input[[el]]))
-      }
-      names(newlist)<-gsub("_sig","",names(newlist))
-      newlist<-newlist[order(names(newlist))]
-      newlist
-    })
     print(parList())
     inFile<-input$weight_data
     days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
