@@ -78,9 +78,9 @@ fluidPage(useShinyjs(),theme = shinytheme("lumen"),useShinyjs(),tags$style("#par
                               actionButton("run_loop","Run calculation"),
                               disabled(downloadButton("downFile","Save results"))
                      ),
-                     tabPanel("Results",id="tabRes",
-                              uiOutput("select_res"),
-                              plotOutput("fit_prot_plot")
+                    tabPanel("Results",id="tabRes",
+                              uiOutput("results"),
+                              resultsKsKdUI("res_trans")
                      )
                      ))
 )

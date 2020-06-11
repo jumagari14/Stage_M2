@@ -9,7 +9,7 @@ library(egg)
 
 
 function(input, output, session) {
-  js$disableTab("tabRes")
+  disable("tabRes")
   fit_op<-reactiveValues(data=NULL)
   run_calc<-reactiveValues(data=NULL)
   en_but<-reactiveValues(enable=FALSE)
@@ -97,7 +97,6 @@ function(input, output, session) {
     error = function(err){
       showNotification(paste0(err), type = 'err')
     })
-    print(coefs_poids$coefs)
     val_mu<-mu(c(poids_data$DPA),input$method_we,coefs_poids$coefs,coefs_poids$formula,dpa_analyse = NULL)
     data_mu<-data.frame("DPA"=c(poids_data$DPA),"Mu"=val_mu)
     g_mu<<-ggplot(data_mu,aes(x=DPA,y=Mu))+geom_line()+theme+xlab("DPA")+ylab("Growth rate (days^-1)")
@@ -122,20 +121,22 @@ function(input, output, session) {
           cont<-cont+1
           print(cont)
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
-          fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,"3_deg")
+          fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,input$fit_mrna)
+          fitR<<-input$fit_mrna
+          test_list[[cont]]$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna,fitR))
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
-          par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
-          X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
-          diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
-          par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
           if (!is.null(par_k)){
+            par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
+            X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
+            diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
+            par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
             test_list[[cont]]$SOL<-par_k
             # write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
           }
         },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
         
       }
-      valid_res<<-Filter(function(x) {length(x) > 5}, test_list)
+      valid_res<<-Filter(function(x) {length(x) > 6}, test_list)
       print(valid_res[[1]])
       mess<-showNotification(paste("Finished!!"),duration = NULL,type = "message")
       en_but$enable<-TRUE
@@ -161,8 +162,14 @@ function(input, output, session) {
     
   )
   observe({
-    if (en_but$enable){
+    req(en_but$enable)
       enable("downFile")
-    }
+      enable("tabRes")
+      names_trans<-sapply(valid_res,with,Transcrit_ID)
+      output$results<-renderUI({
+        tagList(selectInput("res_trans","Select mRNA ID",choices = names_trans))
+      })
   })
+  observeEvent(input$res_trans,{
+               callModule(resultsKsKd,"res_trans",valid_res,input$res_trans)})
 }

@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
@@ -13,6 +13,7 @@ library(readr)
 library(getopt, quietly=TRUE, warn.conflicts=FALSE)
 library(NlcOptim)
 library(V8)
+library(rlist)
 
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
@@ -87,7 +88,30 @@ plotDensity<-function(dataframe, title,lab_x,lab_y,moyenne){
   r<-g+annotate("text",x=coord_x,y=y_max,hjust=1,vjust=1,label=format(round(med,3),nsmall = 3),color="red")
   return(r)
 }
-paramListInput<-function(id,method){
+resultsKsKdUI<-function(id){
+  ns<-NS(id)
+  tagList(htmlOutput(ns("scores")),
+          plotOutput(ns("fits")))
+}
+resultsKsKd<-function(input,output,session,resvalid,trans_id){
+  ns<-session$ns
+  pair_ret<<-Filter(function(x) identical(x[["Transcrit_ID"]],trans_id),resvalid)
+  output$scores<-renderUI({
+    ks1<-paste("Normalized Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
+    ks2<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
+    ks3<-paste("Kd value",pair_ret[[1]][["SOL"]][["solK"]][3,1])
+    mes1<-paste("Error message: ",pair_ret[[1]][["SOL"]][["error"]][["message"]])
+    mes2<-paste("Error score: ",pair_ret[[1]][["SOL"]][["error"]][["score"]])
+    mes3<-paste("Optimization message: ",pair_ret[[1]][["SOL"]][["opt_eval"]][["message"]])
+    mes4<-paste("Optimization score: ",pair_ret[[1]][["SOL"]][["opt_eval"]][["score"]])
+    HTML(paste(ks2,ks1,ks3,mes1,mes2,mes3,mes4, sep = '<br/>'))
+  })
+  output$fits<-renderPlot({
+    ggarrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
+  })
+    
+    }
+paramListInput<-function(id){
   ns<-NS(id)
   tagList(uiOutput(ns("listpar")))
 }
@@ -177,7 +201,7 @@ fitPoids<-function(t,poids,method){
   }
   if (method=="double_sig"){
     parlist = list("par1"=48,"par2"=0.144,"par3"=35,"par4"=0.4,"par5"=48,"par6"=0.042,"par7"=90)
-    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = doubl_sig,ub=NULL,lb=NULL)
+    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = doubl_sig,ub=NULL,lb=c(0,0,0,0,0,0,0))
     g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
     mu.list <- lapply(mu.list, unname)
@@ -246,7 +270,9 @@ fitPoids_v2<-function(t,poids,method,listpar){
     # print(fitted(cont_fit))
   }
   if (method=="double_sig"){
-    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=NULL,lb=NULL)
+    
+    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=NULL,lb=c(0,0,0,0,0,0,0))
+    
     g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
     mu.list <- lapply(mu.list, unname)
@@ -353,7 +379,7 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   }
   if (method=="contois"){
     y0<-parlist$y
-    dev_poids<-odeFitting(as.vector(dpa),y0,parlist = parList,formula = contois)
+    dev_poids<-odeFitting(as.vector(dpa),y0,parlist = parlist,formula = contois)
     y_val<-dev_poids[,2]
     val<-parlist$par1*(1-y_val/parlist$par2)/(parlist$par2+(parlist$par3-1)*y_val)
   }
@@ -368,7 +394,7 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
   }
   if (method=="double_sig"){
     
-    val<-parlist$par2*exp(-parlist$par2*(parlist$par2*(dpa-parlist$par3)))/(1+exp(-parlist$par2*(dpa-parlist$par3)))+parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par6*(dpa-parlist$par7)))
+    val<-parlist$par1*parlist$par2*exp(-parlist$par2*(dpa-parlist$par3))/(1+exp(-parlist$par2*(dpa-parlist$par3)))^2+parlist$par5*parlist$par6*exp(-parlist$par6*(dpa-parlist$par7))/(1+exp(-parlist$par6*(dpa-parlist$par7)))^2
   }
   return(val)
 }
@@ -537,7 +563,7 @@ eqDifPrinc<-function(time,state,par){
   y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
-  val<-unlist(ks)*solmRNA(time,fittedmrna,"3_deg")-(unlist(kd)+mu(dpa=c(time),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*y
+  val<-unlist(ks)*solmRNA(time,fittedmrna,fitR)-(unlist(kd)+mu(dpa=c(time),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*y
   return(list(val))
 }
 matrice_sens<-function(t,parlist){
@@ -579,11 +605,17 @@ resolNewEq<-function(parlist,time){
   data_out<-ode(y=c(parlist[["start_prot"]]),time,func=eqDifPrinc2,parms = parlist,method = "ode45")
   return(data_out[,-1])
 }
+plotFitmRNA<-function(dpa,exp_data,fit_data){
+  
+  merg_data<-as.data.frame(cbind(dpa,as.vector(exp_data),fit_data))
+  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=V2))+theme+xlab("Time (DPA)")+ylab("mRNA concentration normalized by mean (fmol gFW)")+geom_line(aes(y=fit_data))
+  return(g)
+}
 plotFitProt<-function(dpa,exp_data,fit_data){
   merg_data<-as.data.frame(cbind(dpa,exp_data,fit_data))
   melt_data<-melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
   
-  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))
+  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))
   return(g)
 }
 eqDifPrinc2<-function(t,s,par){

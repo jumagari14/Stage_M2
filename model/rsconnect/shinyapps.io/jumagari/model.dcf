@@ -5,6 +5,6 @@ account: jumagari
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2431419
-bundleId: 3252415
+bundleId: 3258234
 url: https://jumagari.shinyapps.io/model/
-when: 1591803161.938
+when: 1591900057.33772
