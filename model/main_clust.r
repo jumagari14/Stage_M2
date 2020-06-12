@@ -15,7 +15,7 @@ setwd(opt$workDir)
 source("global.r")
 
 # test_data<-lista[[30]]
-
+pdf(NULL)
 poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
@@ -69,7 +69,8 @@ res_list<-mclapply(test_list,function(el){
         init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
         para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
       }
-    #   write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
+      print(res)
+    #   write.csv(el[["SOL"]][["solK"]],paste(el[["Transcrit_ID"]],"_Sol_ks_kd.csv",sep = ""))
     }
   res
   # },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -77,7 +78,7 @@ res_list<-mclapply(test_list,function(el){
 valid_res<-Filter(function(x) {length(x) > 0}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)
-
+dev.off()
 write.csv(final_table,opt$finalFile)
 
 # save(test_list,valid_res,del_results,file=path.expand("./resultsv1.RData"))

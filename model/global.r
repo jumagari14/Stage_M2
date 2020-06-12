@@ -222,7 +222,6 @@ fitPoids<-function(t,poids,method){
     g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- wp3
   }
-  print(g)
   return(list("coefs"=mu.list,"formula"=final.form))
   # 
   #   data_prueba<-select_if(total_data[1:5,],is.numeric)
