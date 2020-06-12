@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist","foreach","doParallel")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
@@ -14,6 +14,8 @@ library(getopt, quietly=TRUE, warn.conflicts=FALSE)
 library(NlcOptim)
 library(V8)
 library(rlist)
+library(foreach)
+library(doParallel)
 
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
@@ -577,9 +579,9 @@ derive<-function(t,s,par){
   kd<-par[["kd"]]
 
   
-  ds1st<-ks*solmRNA(t,fittedmrna,"3_deg")-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
+  ds1st<-ks*solmRNA(t,fittedmrna,fitR)-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
   ds2st<--(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]
-  ds3st<-solmRNA(t,fittedmrna,"3_deg")-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
+  ds3st<-solmRNA(t,fittedmrna,fitR)-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
   ds4st<-s[["y.y1"]]-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y4"]]
   return(list(c(ds1st,ds2st,ds3st,ds4st)))
   
@@ -621,6 +623,6 @@ plotFitProt<-function(dpa,exp_data,fit_data){
 eqDifPrinc2<-function(t,s,par){
   ks<-par[["ks"]]
   K<-par[["kd"]]/ks
-  y_res<-ks*(solmRNA(t,fittedmrna,"3_deg")-K*s)-mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)*s
+  y_res<-ks*(solmRNA(t,fittedmrna,fitR)-K*s)-mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)*s
   return(list(y_res))
 }
