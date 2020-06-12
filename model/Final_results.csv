@@ -1,0 +1,3 @@
+"","TranscritID","Weight formula","mRNA formula","Mean mRNA concentration","Mean protein concentration","Starting concentration value","ks","Normalized ks","kd","Fitting error value","Fitting error score","Fitting error message","Optimization error score","Optimization error message"
+"1","Acc26852.1","Double sigmoid","3_deg_log",1.23889754109602,6237.66292722077,3.37258668324911,3.94402077530953,19857.5518622569,2.0824779198845,0.325902978261024,3,"Average fit",10,"Optimisation converges to 3 indentical values"
+"2","Acc26608.1","Double sigmoid","3_deg_log",0.138168882742175,5217.19503319347,3.82378911545408,3.38393325655568,127775.801818593,1.87747538974008,0.229880289290561,5,"Pretty accurate fit",10,"Optimisation converges to 3 indentical values"

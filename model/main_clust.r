@@ -35,6 +35,7 @@ print(numCores)
 # cl <- makeCluster(detectCores()-1, type='PSOCK')
 # registerDoParallel(numCores)
 res_list<-mclapply(test_list,function(el){
+  tryCatch({
   cont<-cont+1
   print(cont)
   res<-list()
@@ -73,7 +74,7 @@ res_list<-mclapply(test_list,function(el){
     #   write.csv(el[["SOL"]][["solK"]],paste(el[["Transcrit_ID"]],"_Sol_ks_kd.csv",sep = ""))
     }
   res
-  # },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 },mc.cores = numCores)
 valid_res<-Filter(function(x) {length(x) > 0}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)

@@ -75,8 +75,7 @@ fluidPage(useShinyjs(),theme = shinytheme("lumen"),useShinyjs(),tags$style("#par
                      tabPanel("mRNA fitting and calculation",
                               textInput("ksmin","Value of ksmin",value =3*4*3*3.6*24),
                               selectInput("fit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
-                              actionButton("run_loop","Run calculation"),
-                              disabled(downloadButton("downFile","Save results"))
+                              actionButton("run_loop","Run calculation")
                      ),
                     tabPanel("Results",id="tabRes",
                               uiOutput("results"),

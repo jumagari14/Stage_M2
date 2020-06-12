@@ -15,7 +15,7 @@ poids_kiwi<-read_xlsx("Kiwi_FW.xlsx",sheet = "Kiwifruit")
 per_dpa<-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-test_list<-sample(test_list,3)
+test_list<-sample(test_list,20)
 coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig")
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
@@ -29,14 +29,16 @@ numCores <- detectCores()-1
 # cl <- makeCluster(detectCores()-1, type='PSOCK')
 # registerDoParallel(numCores)
 res_list<-mclapply(test_list,function(el){
+  tryCatch({
+  cont<-cont+1
   res<-list()
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
-    print(cont)
-    norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
-    fitR<<-"3_deg_log"
-    fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
-    el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna,"3_deg"))
-    par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
+  print(cont)
+  norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
+  fitR<<-"3_deg_log"
+  fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
+  el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna,"3_deg"))
+  par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
     if (!is.null(par_k)){
       res<-list()
       par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
@@ -65,7 +67,9 @@ res_list<-mclapply(test_list,function(el){
       }
     #   write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
     }
+    print(res)
     res
+    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 },mc.cores = numCores)
 
 valid_res<-Filter(function(x) {length(x) > 0}, res_list)
