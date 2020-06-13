@@ -50,7 +50,7 @@ res_list<-mclapply(test_list,function(el){
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
       diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-      para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+      # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
       el$SOL<-par_k
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
@@ -66,17 +66,17 @@ res_list<-mclapply(test_list,function(el){
       res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
       res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
       res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
-      if (any(para_min$par<0)){
-        init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
-        para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
-      }
-      print(res)
+      # if (any(para_min$par<0)){
+      #   init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
+      #   para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
+      # }
+      # print(res)
     #   write.csv(el[["SOL"]][["solK"]],paste(el[["Transcrit_ID"]],"_Sol_ks_kd.csv",sep = ""))
     }
   res
   },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-},mc.cores = numCores)
-valid_res<-Filter(function(x) {length(x) > 0}, res_list)
+},mc.cores = numCores,mc.preschedule=FALSE)
+valid_res<-Filter(function(x) {length(x) > 1}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)
 dev.off()
