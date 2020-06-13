@@ -33,7 +33,7 @@ res_list<-mclapply(test_list,function(el){
   cont<-cont+1
   res<-list()
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
-  print(cont)
+  print(el[["Transcrit_ID"]])
   norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
   fitR<<-"3_deg_log"
   fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)

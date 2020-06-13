@@ -37,7 +37,7 @@ print(numCores)
 res_list<-mclapply(test_list,function(el){
   tryCatch({
   cont<-cont+1
-  print(cont)
+  print(el[["Transcrit_ID"]])
   res<-list()
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
@@ -75,7 +75,7 @@ res_list<-mclapply(test_list,function(el){
     }
   res
   },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-},mc.cores = numCores,mc.preschedule=FALSE)
+},mc.cores = numCores,mc.preschedule=TRUE)
 valid_res<-Filter(function(x) {length(x) > 1}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)
