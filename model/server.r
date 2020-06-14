@@ -58,10 +58,10 @@ function(input, output, session) {
       lista<-vector("list",nrow(mrna_data))
       for (i in seq(1,nrow(total_data))){
         lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=t)
-        
+        lista
       }
       # test_list<<-lista
-      test_list<<-sample(lista,3)
+      test_list<<-sample(lista,100)
     }
   })    
   observeEvent(input$disp_distr,{

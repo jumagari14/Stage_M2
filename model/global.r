@@ -433,17 +433,17 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
 
     
-    parMu<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit),xdata = dpa,ydata = prot_conc)
-    sol1<-resol_mu(parMu$x,dpa)
-    parMu2<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit2),xdata = dpa,ydata = prot_conc)
-    sol2<-resol_mu(parMu2$x,dpa)
-    parMu3<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit3),xdata = dpa,ydata = prot_conc)
-    sol3<-resol_mu(parMu3$x,dpa)
-    parMu4<-lsqcurvefit(fun = resol_mu,p0=unlist(parInit4),xdata = dpa,ydata = prot_conc)
-    sol4<-resol_mu(parMu4$x,dpa)
+    parMu<-nls.lm(par=parInit,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    sol1<-resol_mu(parMu$par,dpa)
+    parMu2<-nls.lm(par=parInit2,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    sol2<-resol_mu(parMu2$par,dpa)
+    parMu3<-nls.lm(par=parInit3,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    sol3<-resol_mu(parMu3$par,dpa)
+    parMu4<-nls.lm(par=parInit4,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    sol4<-resol_mu(parMu4$par,dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
-    parmu<-cbind(parMu$x,parMu2$x,parMu3$x,parMu4$x)
-    resnorm<-c(parMu$ssq,parMu2$ssq,parMu3$ssq,parMu4$ssq)
+    parmu<-cbind(unlist(parMu$par),unlist(parMu2$par),unlist(parMu3$par),unlist(parMu4$par))
+    resnorm<-c(parMu$deviance,parMu2$deviance,parMu3$deviance,parMu4$deviance)
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
     errg<-sqrt(resnorm)/norm(prot_conc,"2")
@@ -452,6 +452,9 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol))
   }
   
+}
+funToMin<-function(par,exp_data,time){
+  return(exp_data-resol_mu(par,time))
 }
 evalOptim<-function(parmu){
   parmu1<-as.vector(parmu[,1])

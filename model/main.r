@@ -13,9 +13,9 @@ source("global.r")
 poids<-read_csv("poids_test.csv",col_names=c("DPA","Poids"))
 poids_kiwi<-read_xlsx("Kiwi_FW.xlsx",sheet = "Kiwifruit")
 per_dpa<-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
-test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-test_list<-sample(test_list,20)
+# test_list<-sample(test_list,20)
 coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig")
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
@@ -61,13 +61,13 @@ res_list<-mclapply(test_list,function(el){
       res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
       res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
       res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
-      if (any(para_min$par<0)){
-        init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
-        para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
-      }
+      # if (any(para_min$par<0)){
+      #   init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
+      #   para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
+      # }
     #   write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
     }
-    print(res)
+    print(paste("Process finished for ",el[["Transcrit_ID"]],sep=""))
     res
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 },mc.cores = numCores)
