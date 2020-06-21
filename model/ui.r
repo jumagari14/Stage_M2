@@ -27,9 +27,6 @@ css <- "
 library(shiny)
 library(shinythemes)
 library(shinyjs)
-library(ggplot2)
-library(grid)
-library(egg)
 library(shinythemes)
 
 # source("input.r")

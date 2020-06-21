@@ -1,4 +1,6 @@
-
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","V8","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 # setwd("D:/Stage M2/Stage_M2/model/")
 # setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/model/")
 library(getopt,quietly=TRUE, warn.conflicts=FALSE)

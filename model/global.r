@@ -1,6 +1,3 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
 library(deSolve)
 library(minpack.lm)
@@ -12,13 +9,14 @@ library(dplyr)
 library(readr)
 library(getopt, quietly=TRUE, warn.conflicts=FALSE)
 library(NlcOptim)
-# library(V8)
+library(V8)
 library(rlist)
 library(foreach)
 library(doParallel)
 library(data.table)
 library(reader)
 library(pbapply)
+library(markdown)
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
