@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist","foreach","doParallel","data.table")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","readr","getopt","V8","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
@@ -17,7 +17,8 @@ library(rlist)
 library(foreach)
 library(doParallel)
 library(data.table)
-
+library(reader)
+library(pbapply)
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
@@ -100,8 +101,8 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
   ns<-session$ns
   pair_ret<<-Filter(function(x) identical(x[["Transcrit_ID"]],trans_id),resvalid)
   output$scores<-renderUI({
-    ks1<-paste("Normalized Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
-    ks2<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
+    ks1<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
+    ks2<-paste("Normalized ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
     ks3<-paste("Kd value",pair_ret[[1]][["SOL"]][["solK"]][3,1])
     mes1<-paste("Error message: ",pair_ret[[1]][["SOL"]][["error"]][["message"]])
     mes2<-paste("Error score: ",pair_ret[[1]][["SOL"]][["error"]][["score"]])
@@ -122,19 +123,37 @@ paramList<-function(input,output,session,method){
   ns <- session$ns
   if (method=="verhulst"){
     output$listpar<-renderUI({
-      tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.1),
-      textInput(ns("par2_sig"),"Enter value of b",value = 100),
-      textInput(ns("par3_sig"),"Enter value of c",value = 1))})
+      tabsetPanel(type = "pills",
+                  tabPanel("Parameters",
+                           tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.1),
+                                   textInput(ns("par2_sig"),"Enter value of b",value = 100),
+                                   textInput(ns("par3_sig"),"Enter value of c",value = 1))),
+                  tabPanel("Boundaries",
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(20,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(20,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(20,200)))))
+      })
   }
   if (method=="double_sig"){
     output$listpar<-renderUI({
-      tagList(textInput(ns("par1_sig"),"Enter value of a",value = 48),
-      textInput(ns("par2_sig"),"Enter value of b",value = 0.144),
-      textInput(ns("par3_sig"),"Enter value of c",value = 35),
-      textInput(ns("par4_sig"),"Enter value of d",value = 0.4),
-      textInput(ns("par5_sig"),"Enter value of e",value = 48),
-      textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
-      textInput(ns("par7_sig"),"Enter value of g",value = 90))})
+      tabsetPanel(type="pills",
+                  tabPanel("Parameters",
+                           tagList(textInput(ns("par1_sig"),"Enter value of a",value = 48),
+                                   textInput(ns("par2_sig"),"Enter value of b",value = 0.144),
+                                   textInput(ns("par3_sig"),"Enter value of c",value = 35),
+                                   textInput(ns("par4_sig"),"Enter value of d",value = 0.4),
+                                   textInput(ns("par5_sig"),"Enter value of e",value = 48),
+                                   textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
+                                   textInput(ns("par7_sig"),"Enter value of g",value = 90))),
+                  tabPanel("Boundaries",
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = 0, max = 1000,value = c(0,1000)),
+                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = 0, max = 1000,value = c(0,1000)))))
+  })
   }
   if (method=="empirique"){
     output$listpar<-renderUI({
@@ -164,7 +183,21 @@ paramList<-function(input,output,session,method){
     newlist<-newlist[order(names(newlist))]
     newlist
   })
-  return(parList)
+  boundList<-reactive({
+    x<-reactiveValuesToList(input)
+    x_ind<-grep("bound_[a-z]+",names(x),perl = T)
+    bounds<-list()
+    bounds[["ub"]]<-vector("double",length = length(x_ind))
+    bounds[["lb"]]<-vector("double",length = length(x_ind))
+    cont<-1
+    for (el in names(x[x_ind])){
+      bounds[["ub"]][cont]<-as.numeric(as.character(input[[el]][2]))
+      bounds[["lb"]][cont]<-as.numeric(as.character(input[[el]][1]))
+      cont<-cont+1
+    }
+    bounds
+  })
+  return(list("parms"=parList,"bounds"=boundList))
 }
 fitPoids<-function(t,poids,method){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
@@ -230,9 +263,9 @@ fitPoids<-function(t,poids,method){
   #   
   #   fitting<-nlsLM(formula =formula_fit,start = parlist,data = data.frame("t"=t,"y"=y))
 } 
-fitPoids_v2<-function(t,poids,method,listpar){
-  t<-as.numeric(pull(t))
-  poids<-as.numeric(pull(poids))
+fitPoids_v2<-function(t,poids,method,listpar,bounds){
+  # t<-as.numeric(pull(t))
+  # poids<-as.numeric(pull(poids))
   poids<-poids[!is.na(poids)]
   t<-t[!is.na(t)]
   
@@ -245,20 +278,20 @@ fitPoids_v2<-function(t,poids,method,listpar){
   doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
   g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
   if (method=="verhulst"){
-    ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit  = verhulst,ub=NULL,lb=NULL)
+    ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit  = verhulst,ub=bounds$ub,lb=bounds$lb)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(ver_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(ver_fit), names(coef(ver_fit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-ver_fit
   }
   if (method=="gompertz"){
-    gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = gompertz,ub=NULL,lb=NULL)
+    gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = gompertz,ub=bounds$ub,lb=bounds$lb)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(gom_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(gom_fit), names(coef(gom_fit)))
     final.form<-gom_fit
   }
   if (method=="empirique"){
-    emp_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=5.38,"par2"=8,"par3"=7),formula_fit = empirique,ub=NULL,lb=NULL)
+    emp_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=5.38,"par2"=8,"par3"=7),formula_fit = empirique,ub=bounds$ub,lb=bounds$lb)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(emp_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(emp_fit), names(coef(emp_fit)))
     mu.list <- lapply(mu.list, unname)
@@ -273,7 +306,7 @@ fitPoids_v2<-function(t,poids,method,listpar){
   }
   if (method=="double_sig"){
     
-    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=NULL,lb=c(0,0,0,0,0,0,0))
+    db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = doubl_sig,ub=bounds$ub,lb=bounds$lb)
     
     g<-g+geom_line(aes(x=unlist(t),y=fitted(db_sigFit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
@@ -293,7 +326,8 @@ fitPoids_v2<-function(t,poids,method,listpar){
     mu.list <- wp3
     final.form<-new_y
   }
-  return(list("coefs"=mu.list,"formula"=final.form,"graph"=g))
+  err<-norm(poids-fitted(final.form),"2")/norm(poids,"2")
+  return(list("coefs"=mu.list,"formula"=final.form,"graph"=g,"error"=err))
   # 
   #   data_prueba<-select_if(total_data[1:5,],is.numeric)
   #   t<-t(as.matrix(seq(1,27)))
@@ -303,7 +337,9 @@ fitPoids_v2<-function(t,poids,method,listpar){
 } 
 
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
-  fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=t,"y"=y),col.names = c("t","y")),upper = ub,lower = lb)
+  # colnames(t)<-"t"
+  # colnames(y)<-"y"
+  fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=as.matrix(t),"y"=as.matrix(y))),upper = ub,lower = lb)
   return(fitting)
 }
 odeFitting<-function(t,y,parlist,formula){
@@ -330,22 +366,12 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
     return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
   }
   
-  else if (grepl(".*csv",data,perl = T)){
-    total_data<-read_csv(file = data,col_names = F)
-    if (poids) colnames(total_data)<-c("DPA","Poids")
-    else colnames(total_data)<-total_data[1,]
-    return(total_data)
-  }
   else{
-    total_data<-read_csv(file = data,col_names = F)
+    total_data<-read_delim(file = data,col_names = F,delim=get.delim(data))
     if (poids) colnames(total_data)<-c("DPA","Poids")
     else colnames(total_data)<-total_data[1,]
     return(total_data)
   }
-  
-  
-  
-  
 }
 contois<-function(time,state,par) {
   r<-par["r"]
@@ -359,6 +385,7 @@ normaMean<-function(proteo_data,mrna_data,ks){
   RNA<-mrna_data/mean(mrna_data,na.rm = T)
   PROT<-proteo_data/mean(proteo_data,na.rm = T)
   ks_norm<-ks*mean(mrna_data,na.rm = T)/mean(proteo_data,na.rm = T)
+  
   return(list("mrna"=RNA,"prot"=PROT,"ks"=ks_norm))
 }
 mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
@@ -403,7 +430,7 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
 fit_testRNA<-function(dpa,mrna,fitR){
   model3<-polyfit(dpa,mrna,3)
   model6<-polyfit(dpa,mrna,6)
-  model_log<-polyfit(dpa,log10(mrna),3)
+  model_log<-polyfit(dpa,log(mrna),3)
   if (fitR=="3_deg"){
     ret<-model3
   }
@@ -413,9 +440,13 @@ fit_testRNA<-function(dpa,mrna,fitR){
   if (fitR=="3_deg_log"){
     ret<-model_log
   }
-  return(ret)
+  val_fit<-solmRNA(dpa,ret,fitR)
+  fitErrMRNA<-norm(mrna-val_fit,"2")/norm(mrna,"2")
+  
+  return(list("coefs"=ret,"error"=fitErrMRNA))
 }
 solgss_Borne<-function(dpa,prot_conc,ks_min,score){
+  
   init_prot<-init_conc(dpa,prot_conc)
   if (is.nan(init_prot$init)){
     return(NULL)
@@ -434,12 +465,16 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
 
     
     parMu<-nls.lm(par=parInit,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    #print(summary(parMu))
     sol1<-resol_mu(parMu$par,dpa)
     parMu2<-nls.lm(par=parInit2,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    #print(confint(parMu2))
     sol2<-resol_mu(parMu2$par,dpa)
     parMu3<-nls.lm(par=parInit3,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    #print(confint(parMu3))
     sol3<-resol_mu(parMu3$par,dpa)
     parMu4<-nls.lm(par=parInit4,fn=funToMin,lower = c(0,0,0),exp_data=prot_conc,time=dpa)
+    #print(confint(parMu4))
     sol4<-resol_mu(parMu4$par,dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(unlist(parMu$par),unlist(parMu2$par),unlist(parMu3$par),unlist(parMu4$par))
@@ -561,6 +596,8 @@ resol_mu<-function(parList,time){
   # data_out<-lsode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,maxsteps = 1e5,verbose = F)
   
   data_out<-ode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,method = "ode45")
+
+  # data_out<-ode23s(eqDifPrinc_v2,time[1],time[length(time)],y0=y0,parlist=parList,hmax = 0.2)
   data_out<-data_out[,-1]
   return(data_out)
 }
@@ -568,8 +605,16 @@ eqDifPrinc<-function(time,state,par){
   y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
-  val<-unlist(ks)*solmRNA(time,fittedmrna,fitR)-(unlist(kd)+mu(dpa=c(time),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*y
+  val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*y
+  
   return(list(val))
+}
+eqDifPrinc_v2<-function(t,y,parlist){
+  ks<-parlist[["ks"]]
+  kd<-parlist[["kd"]]
+  val<-unlist(ks)*solmRNA(t,fittedmrna,fitR)-(unlist(kd)+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*y
+  
+  val
 }
 matrice_sens<-function(t,parlist){
   parList<-list("y1"=parlist[["start_prot"]],"y2"=1,"y3"=0,"y4"=0)
@@ -582,10 +627,10 @@ derive<-function(t,s,par){
   kd<-par[["kd"]]
 
   
-  ds1st<-ks*solmRNA(t,fittedmrna,fitR)-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
-  ds2st<--(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]
-  ds3st<-solmRNA(t,fittedmrna,fitR)-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
-  ds4st<-s[["y.y1"]]-(kd+mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y4"]]
+  ds1st<-ks*solmRNA(t,fittedmrna$coefs,fitR)-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
+  ds2st<--(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]
+  ds3st<-solmRNA(t,fittedmrna$coefs,fitR)-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
+  ds4st<-s[["y.y1"]]-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y4"]]
   return(list(c(ds1st,ds2st,ds3st,ds4st)))
   
   
@@ -626,6 +671,7 @@ plotFitProt<-function(dpa,exp_data,fit_data){
 eqDifPrinc2<-function(t,s,par){
   ks<-par[["ks"]]
   K<-par[["kd"]]/ks
-  y_res<-ks*(solmRNA(t,fittedmrna,fitR)-K*s)-mu(dpa=c(t),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)*s
+  y_res<-ks*(solmRNA(t,fittedmrna,fitR)-K*s)-mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)*s
   return(list(y_res))
 }
+# ellipseAnalysis<-function()
