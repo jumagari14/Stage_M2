@@ -44,8 +44,9 @@ res_list<-mclapply(test_list,function(el){
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fitR<<-"3_deg_log"
+    fitWe<-"double_sig"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
-    el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna,fitR))
+    el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
     if (!is.null(par_k)){
       par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
@@ -56,7 +57,9 @@ res_list<-mclapply(test_list,function(el){
       el$SOL<-par_k
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
+      res[["Weight error"]]<-el[["errorWeight"]]
       res[["mRNA formula"]]<-fitR
+      res[["mRNA error"]]<-el[["errorMrna"]]
       res[["Mean mRNA concentration"]]<-mean(el[["Transcrit_val"]],na.rm = T)
       res[["Mean protein concentration"]]<-mean(el[["Protein_val"]],na.rm = T)
       res[["Starting protein concentration value"]]<-unname(el[["SOL"]][["solK"]][1,1])
