@@ -197,15 +197,21 @@ function(input, output, session) {
               diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
               par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
               el$SOL<-par_k
-              # write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
-            }
+              para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+              el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 52)
+              if (any(el$confEllipse<0)){
+                el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+xlim(c(0,max(as.data.frame(el[["confEllipse"]])$x)))+ylim(0,max(as.data.frame(el[["confEllipse"]])$y))+ylab("kd")+xlab("ks")
+              }
+              else {
+                el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+ylab("kd")+xlab("ks")
+              }            
+              }
             el
           },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
         },cl=detectCores() - 1)
       }
       stopCluster(cl)
       valid_res<<-Filter(function(x) {length(x) > 6}, res_list)
-      print(valid_res[[1]])
       mess<-showNotification(paste("Finished!!"),duration = NULL,type = "message")
       en_but$enable<-TRUE
       names_trans<-sapply(valid_res,with,Transcrit_ID)

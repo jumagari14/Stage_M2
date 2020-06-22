@@ -1,8 +1,3 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","V8","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
-# setwd("D:/Stage M2/Stage_M2/model/")
-# setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/model/")
 library(getopt,quietly=TRUE, warn.conflicts=FALSE)
 args <- commandArgs(trailingOnly=TRUE)
 spec <- matrix(c(
@@ -22,11 +17,11 @@ poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
-# test_list<-sample(test_list,200)
-coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,"double_sig")
+fitWe<<-"double_sig"
+coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,fitWe)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
-val_mu<-mu(c(poids_kiwi$DPA),"double_sig",poids_coef,formula_poids,dpa_analyse = NULL)
+val_mu<-mu(c(poids_kiwi$DPA),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
 plot(poids_kiwi$DPA,val_mu,"l")
 ksmin=3*4*3*3.6*24
 score=0
@@ -44,7 +39,6 @@ res_list<-mclapply(test_list,function(el){
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fitR<<-"3_deg_log"
-    fitWe<-"double_sig"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
     el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
@@ -53,18 +47,19 @@ res_list<-mclapply(test_list,function(el){
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
       diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-      # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+      para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
       el$SOL<-par_k
+      el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 10)
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
-      res[["Weight error"]]<-el[["errorWeight"]]
+      res[["Weight error"]]<-coef_poids[["error"]]
       res[["mRNA formula"]]<-fitR
-      res[["mRNA error"]]<-el[["errorMrna"]]
+      res[["mRNA error"]]<-fittedmrna[["error"]]
       res[["Mean mRNA concentration"]]<-mean(el[["Transcrit_val"]],na.rm = T)
       res[["Mean protein concentration"]]<-mean(el[["Protein_val"]],na.rm = T)
       res[["Starting protein concentration value"]]<-unname(el[["SOL"]][["solK"]][1,1])
-      res[["ks"]]<-unname(el[["SOL"]][["solK"]][2,1])
-      res[["Normalized ks"]]<-unname(el[["SOL"]][["solK"]][2,1])*res[["Mean protein concentration"]]/res[["Mean mRNA concentration"]]
+      res[["ks"]]<-unname(el[["SOL"]][["solK"]][2,1])*res[["Mean protein concentration"]]/res[["Mean mRNA concentration"]]
+      res[["Normalized ks"]]<-unname(el[["SOL"]][["solK"]][2,1])
       res[["kd"]]<-unname(el[["SOL"]][["solK"]][3,1])
       res[["Fitting error value"]]<-el[["SOL"]][["error"]][["errg"]][1]
       res[["Fitting error score"]]<-el[["SOL"]][["error"]][["score"]]

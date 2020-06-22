@@ -1,3 +1,6 @@
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car","plotly")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
 library(deSolve)
 library(minpack.lm)
@@ -9,7 +12,6 @@ library(dplyr)
 library(readr)
 library(getopt, quietly=TRUE, warn.conflicts=FALSE)
 library(NlcOptim)
-library(V8)
 library(rlist)
 library(foreach)
 library(doParallel)
@@ -17,6 +19,8 @@ library(data.table)
 library(reader)
 library(pbapply)
 library(markdown)
+library(car)
+library(plotly)
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
@@ -109,7 +113,7 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     HTML(paste(ks2,ks1,ks3,mes1,mes2,mes3,mes4, sep = '<br/>'))
   })
   output$fits<-renderPlot({
-    ggarrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
+    grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],pair_ret[[1]][["confEllipsePlot"]],ncol=2,nrow=2,layout_matrix = rbind(c(1,2), c(3,3)))
   })
     
     }
@@ -253,7 +257,8 @@ fitPoids<-function(t,poids,method){
     g<-g+geom_line(aes(x=unlist(t),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- wp3
   }
-  return(list("coefs"=mu.list,"formula"=final.form))
+  err<-norm(poids-fitted(final.form),"2")/norm(poids,"2")
+  return(list("coefs"=mu.list,"formula"=final.form,"error"=err))
   # 
   #   data_prueba<-select_if(total_data[1:5,],is.numeric)
   #   t<-t(as.matrix(seq(1,27)))
@@ -482,7 +487,8 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     errg<-sqrt(resnorm)/norm(prot_conc,"2")
     err_mes<-scoreErreur(error)
     err_mes[["errg"]]<-errg
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol))
+    model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list))
   }
   
 }
@@ -610,7 +616,7 @@ eqDifPrinc<-function(time,state,par){
 eqDifPrinc_v2<-function(t,y,parlist){
   ks<-parlist[["ks"]]
   kd<-parlist[["kd"]]
-  val<-unlist(ks)*solmRNA(t,fittedmrna,fitR)-(unlist(kd)+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*y
+  val<-unlist(ks)*solmRNA(t,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*y
   
   val
 }
@@ -669,7 +675,7 @@ plotFitProt<-function(dpa,exp_data,fit_data){
 eqDifPrinc2<-function(t,s,par){
   ks<-par[["ks"]]
   K<-par[["kd"]]/ks
-  y_res<-ks*(solmRNA(t,fittedmrna,fitR)-K*s)-mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)*s
+  y_res<-ks*(solmRNA(t,fittedmrna$coefs,fitR)-K*s)-mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)*s
   return(list(y_res))
 }
-# ellipseAnalysis<-function()
+
