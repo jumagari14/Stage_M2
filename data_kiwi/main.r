@@ -5,7 +5,7 @@ source("../model/global.r")
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 # poids_kiwi<-loadData("poids_kiwi.csv","","",T)
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
-test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 # test_list<-sample(test_list,5)
 fitWe<<-"double_sig"
@@ -76,8 +76,8 @@ if (Sys.info()["sysname"]=="Windows"){
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   },cl=cl)
 } else if(Sys.info()["sysname"]=="Linux"){
-  # for (el in test_list){
-  res_list<-pblapply(X=test_list,function(el){
+  for (el in test_list){
+  # res_list<-pblapply(X=test_list,function(el){
     # tryCatch({
     # cont<-cont+1
     print(el)
@@ -128,9 +128,9 @@ if (Sys.info()["sysname"]=="Windows"){
       print(paste("Process finished for ",el[["Transcrit_ID"]],sep=""))
       res
       # },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-  },cl=numCores)
+  }#,cl=numCores)
 }
-# stopCluster(cl)
+stopCluster(cl)
 valid_res<-Filter(function(x) {length(x) > 0}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)

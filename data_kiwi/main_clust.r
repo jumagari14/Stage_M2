@@ -49,7 +49,6 @@ res_list<-mclapply(test_list,function(el){
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
       para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
       el$SOL<-par_k
-      el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 10)
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
       res[["Weight error"]]<-coef_poids[["error"]]
@@ -74,7 +73,7 @@ res_list<-mclapply(test_list,function(el){
     #   write.csv(el[["SOL"]][["solK"]],paste(el[["Transcrit_ID"]],"_Sol_ks_kd.csv",sep = ""))
     }
   res
-  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  },error=function(e){cat("ERROR :",conditionMessage(e)," for ",el[["Transcrit_ID"]], "\n")})
 },mc.cores = numCores,mc.preschedule=TRUE)
 valid_res<-Filter(function(x) {length(x) > 1}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)

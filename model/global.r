@@ -97,7 +97,8 @@ plotDensity<-function(dataframe, title,lab_x,lab_y,moyenne){
 resultsKsKdUI<-function(id){
   ns<-NS(id)
   tagList(htmlOutput(ns("scores")),
-          plotOutput(ns("fits")))
+          plotOutput(ns("fits")),
+          plotOutput(ns("ellip")))
 }
 resultsKsKd<-function(input,output,session,resvalid,trans_id){
   ns<-session$ns
@@ -113,7 +114,10 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     HTML(paste(ks2,ks1,ks3,mes1,mes2,mes3,mes4, sep = '<br/>'))
   })
   output$fits<-renderPlot({
-    grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],pair_ret[[1]][["confEllipsePlot"]],ncol=2,nrow=2,layout_matrix = rbind(c(1,2), c(3,3)))
+    grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
+  })
+  output$ellip<-renderPlot({
+    pair_ret[[1]][["confEllipsePlot"]]
   })
     
     }
@@ -131,10 +135,22 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 100),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 1))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(20,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(20,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(20,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
       })
+    x<-reactiveValuesToList(input)
+    if (!is.null(x$par4_sig)){
+      x$par4_sig<-NULL
+      x$par5_sig<-NULL
+      x$par6_sig<-NULL
+      x$par7_sig<-NULL
+      x$bound_d<-NULL
+      x$bound_e<-NULL
+      x$bound_f<-NULL
+      x$bound_g<-NULL
+    }
+    
   }
   if (method=="double_sig"){
     output$listpar<-renderUI({
@@ -148,33 +164,89 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
                                    textInput(ns("par7_sig"),"Enter value of g",value = 90))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = 0, max = 1000,value = c(0,1000)),
-                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = 0, max = 1000,value = c(0,1000)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = 0, max = 1000,value = c(0,200)))))
   })
   }
   if (method=="empirique"){
     output$listpar<-renderUI({
-      tagList(textInput(ns("par1_sig"),"Enter value of a",value =5.38),
-      textInput(ns("par2_sig"),"Enter value of b",value = 8),
-      textInput(ns("par3_sig"),"Enter value of c",value = 7))})
+      tabsetPanel(type = "pills",
+                  tabPanel("Parameters",
+                           tagList(textInput(ns("par1_sig"),"Enter value of a",value =5.38),
+                                   textInput(ns("par2_sig"),"Enter value of b",value = 8),
+                                   textInput(ns("par3_sig"),"Enter value of c",value = 7))),
+                  tabPanel("Boundaries",
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
+      
+  })
+    x<-reactiveValuesToList(input)
+    if (!is.null(x$par4_sig)){
+      x$par4_sig<-NULL
+      x$par5_sig<-NULL
+      x$par6_sig<-NULL
+      x$par7_sig<-NULL
+      x$bound_d<-NULL
+      x$bound_e<-NULL
+      x$bound_f<-NULL
+      x$bound_g<-NULL
+    }
   }
   if (method=="gompertz"){
     output$listpar<-renderUI({
-      tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.065),
-      textInput(ns("par2_sig"),"Enter value of b",value = 114.39),
-      textInput(ns("par3_sig"),"Enter value of c",value = 0.52))})
+      tabsetPanel(type="pills",
+                  tabPanel("Parameters",
+                           tagList(textInput(ns("par1_sig"),"Enter value of a",value =0.065),
+                                   textInput(ns("par2_sig"),"Enter value of b",value = 114.39),
+                                   textInput(ns("par3_sig"),"Enter value of c",value = 0.52))),
+                  tabPanel("Boundaries",
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
+      
+  })
+    x<-reactiveValuesToList(input)
+    if (!is.null(x$par4_sig)){
+      x$par4_sig<-NULL
+      x$par5_sig<-NULL
+      x$par6_sig<-NULL
+      x$par7_sig<-NULL
+      x$bound_d<-NULL
+      x$bound_e<-NULL
+      x$bound_f<-NULL
+      x$bound_g<-NULL
+    }
   }
   if (method=="log_poly"){
     output$listpar<-renderUI({
       tagList()})
-  }
-  parList<-reactive({
     x<-reactiveValuesToList(input)
+    if (!is.null(x$par1_sig)){
+      x$par1_sig<-NULL
+      x$par2_sig<-NULL
+      x$par3_sig<-NULL
+      x$par4_sig<-NULL
+      x$par5_sig<-NULL
+      x$par6_sig<-NULL
+      x$par7_sig<-NULL
+      x$bound_a<-NULL
+      x$bound_b<-NULL
+      x$bound_c<-NULL
+      x$bound_d<-NULL
+      x$bound_e<-NULL
+      x$bound_f<-NULL
+      x$bound_g<-NULL
+    }
+  }
+  
+  parList<-reactive({
+    if (!exists("x")) x<-reactiveValuesToList(input)
     x_ind<-grep("par[1-9]+",names(x),perl = T)
     newlist<-vector("list",length(x_ind))
     names(newlist)<-names(x[x_ind])
@@ -182,11 +254,11 @@ paramList<-function(input,output,session,method){
       newlist[[el]]<-as.numeric(as.character(input[[el]]))
     }
     names(newlist)<-gsub("_sig","",names(newlist))
-    newlist<-newlist[order(names(newlist))]
-    newlist
+    parList<-newlist[order(names(newlist))]
+  newlist
   })
   boundList<-reactive({
-    x<-reactiveValuesToList(input)
+    if (!exists("x")) x<-reactiveValuesToList(input)
     x_ind<-grep("bound_[a-z]+",names(x),perl = T)
     bounds<-list()
     bounds[["ub"]]<-vector("double",length = length(x_ind))
@@ -370,9 +442,12 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
   }
   
   else{
-    total_data<-read_delim(file = data,col_names = F,delim=get.delim(data))
+    total_data<-read_delim(file = data,delim=get.delim(data),col_names = F,na=c("","NA","#E/E","NaN"))
     if (poids) colnames(total_data)<-c("DPA","Poids")
-    else colnames(total_data)<-total_data[1,]
+    else{
+      colnames(total_data)<-total_data[1,]
+      total_data<-total_data[-1,]
+    }
     return(total_data)
   }
 }

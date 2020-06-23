@@ -28,10 +28,6 @@ function(input, output, session) {
               fileInput("data_file","Choose xls/xlsx file",accept=c(".xls",".xlsx")))
     }
   })
-  observeEvent(input$method_we, {
-    # updateTabsetPanel(session, "params", selected = input$method_we)
-    updateTabsetPanel(session,"formulas",selected = input$method_we)
-  })
   observe({
     if(!is.null(input$data_file)){
       inFile<-input$data_file
@@ -44,21 +40,31 @@ function(input, output, session) {
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       test_el<<-sample(test_list,1)[[1]]
     }
-  }) 
-  observe({
     if((!is.null(input$prot_file)) & (!is.null(input$mrna_file))){
       protFile<-input$prot_file
       mrnaFile<-input$mrna_file
-      prot_data<-loadData(protFile$datapath,"","",poids=F)
       mrna_data<-loadData(mrnaFile$datapath,"","",poids=F)
-      clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
-      clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
-      
+      browser()
+      prot_data<-loadData(protFile$datapath,"","",poids=F)
+      colnames(prot_data)[1]<-"Protein"
+      colnames(mrna_data)[1]<-"Transcrit"
+      ind_num_mrna<-which(!is.na(as.numeric(as.character(colnames(mrna_data)))))
+      ind_prot_num<-which(!is.na(as.numeric(as.character(colnames(prot_data)))))
+      mrna_data[,ind_num_mrna]<-as.data.frame(sapply(mrna_data[,ind_num_mrna],as.numeric))
+      prot_data[,ind_prot_num]<-as.data.frame(sapply(prot_data[,ind_prot_num],as.numeric))
+      clean_mrna_data<<-mrna_data[,ind_num_mrna]
+      clean_prot_data<<-prot_data[,ind_prot_num]
+      if (grep("\\.[0-3]",colnames(prot_data),perl = T)){
+          days<-gsub("\\.[0-3]","",colnames(prot_data)[grep("[0-9]+",colnames(prot_data))])
+      }
+      else{
+        days<-gsub("\\.[0-3]","",colnames(mrna_data)[grep("[0-9]+",colnames(mrna_data))])
+      }
+      days_kiwi<<-as.numeric(as.character(days))
       total_data<-merge(mrna_data,prot_data)
       lista<-vector("list",nrow(mrna_data))
       for (i in seq(1,nrow(total_data))){
-        lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=t)
-        lista
+        lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=days_kiwi)
       }
       # test_list<<-lista
       test_list<<-sample(lista,100)
@@ -80,8 +86,8 @@ function(input, output, session) {
   #   }
   # }
   # # })
-  
-  observe({
+
+  observeEvent(input$method_we,{
     parList<-callModule(paramList,"params",input$method_we)
     parList<<-parList$parms
     boundList<<-parList$bounds})
@@ -89,7 +95,6 @@ function(input, output, session) {
     print(parList())
     print(boundList())
     inFile<-input$weight_data
-    days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
     poids_data<-loadData(inFile$datapath,"","",poids=T)
     print("Fitting...")
     tryCatch({
@@ -105,17 +110,26 @@ function(input, output, session) {
     data_mu<-data.frame("DPA"=c(poids_data$DPA),"Mu"=val_mu)
     g_mu<<-ggplot(data_mu,aes(x=DPA,y=Mu))+geom_line()+theme+xlab("DPA")+ylab(bquote("Growth rate "~(days^-1)))
     data_rel_mu<-data.frame("DPA"=c(poids_data$DPA),"RGR"=val_mu/fitted(coefs_poids$formula))
-    print(data_rel_mu)
     g_rel_mu<<-ggplot(data_rel_mu,aes(x=DPA,y=RGR))+geom_line()+theme+xlab("DPA")+ylab(bquote("Relative growth rate "~(days^-1)))
     fit_op$state<-TRUE
     print("Finished!!")
     output$fitplot<-renderPlot({
       req((fit_op$state)==TRUE,exists("coefs_poids"))
-      ggarrange(coefs_poids$graph,g_mu,g_rel_mu,ncol=3)
+      coefs_poids$graph
+    })
+    output$rates<-renderPlot({
+      req((fit_op$state)==TRUE,exists(c("g_mu","g_rel_mu")))
+      ggarrange(g_mu,g_rel_mu,ncol = 2)   
     })
     output$errWe<-renderText({
       paste("Error value: ",coefs_poids$error,sep="")
     })
+  })
+  observeEvent(input$clearGraph,{
+    output$fitplot<-renderPlot(NULL)
+    output$rates<-renderPlot(NULL)
+    output$errWe<-renderText(NULL)
+    rm("parList","boundList","g_mu","g_rel_mu","coefs_poids",envir = .GlobalEnv)
   })
   observeEvent(input$testMRNA,{
     req(exists("test_el"))

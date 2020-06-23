@@ -1,3 +1,4 @@
+rm(list = ls())
 jscode <- "
 shinyjs.disableTab = function(name) {
   var tab = $('.nav li a[data-value=' + name + ']');
@@ -80,10 +81,12 @@ fluidPage(useShinyjs(),theme = shinytheme("united"),useShinyjs(),tags$style("#pa
                                   div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Empiric"="empirique","Log polynomial"="log_poly","Double sigmoid"="double_sig"))),
                                   div(style="display:inline-block",formula_tabs), ## "Contois"="contois",,"Noyau"="seed",
                                   paramListInput("params"),
-                                  actionButton("fit_op","Fit")
+                                  div(style="display:inline-block",actionButton("fit_op","Fit")),
+                                  div(style="display:inline-block",actionButton("clearGraph","Clear graphs"))
                                 ),
                                 mainPanel(
                                   plotOutput("fitplot"),
+                                  plotOutput("rates"),
                                   textOutput("errWe")
                                 )
                               )
@@ -98,10 +101,11 @@ fluidPage(useShinyjs(),theme = shinytheme("united"),useShinyjs(),tags$style("#pa
                                                        actionButton("testMRNA","Run mRNA fitting test")),
                                               tabPanel("Main calculation",textInput("ksmin","Value of ksmin",value =3*4*3*3.6*24),
                                                        selectInput("fit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
-                                                       actionButton("run_loop","Run calculation"))
+                                                       actionButton("run_loop","Run calculation")
+                                                       )
                                   )
                                 ),
-                                mainPanel(plotOutput("testmrnaplot"),
+                                mainPanel(plotOutput("testmrnaplot",width = "100%"),
                                           textOutput("errMrna"))
                               )
                               
