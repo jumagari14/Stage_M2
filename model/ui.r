@@ -1,36 +1,9 @@
 rm(list = ls())
-jscode <- "
-shinyjs.disableTab = function(name) {
-  var tab = $('.nav li a[data-value=' + name + ']');
-  tab.bind('click.tab', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  tab.addClass('disabled');
-}
 
-shinyjs.enableTab = function(name) {
-  var tab = $('.nav li a[data-value=' + name + ']');
-  tab.unbind('click.tab');
-  tab.removeClass('disabled');
-}
-"
-
-css <- "
-.nav li a.disabled {
-  background-color: #aaa !important;
-  color: #333 !important;
-  cursor: not-allowed !important;
-  border-color: #aaa !important;
-}"
 # Create Shiny object
 
 library(shiny)
 library(shinythemes)
-library(shinyjs)
-library(shinythemes)
-
-# source("input.r")
 
 formula_tabs<-tabsetPanel(
   tabPanel("double_sig",
@@ -52,8 +25,7 @@ formula_tabs<-tabsetPanel(
 
 )
 
-fluidPage(useShinyjs(),theme = shinytheme("united"),useShinyjs(),tags$style("#params { display:none; } #formulas { display:none; }"),
-          extendShinyjs(text = jscode),inlineCSS(css),
+fluidPage(theme = shinytheme("united"),tags$style("#params { display:none; } #formulas { display:none; }"),
           navbarPage("Protein turnover model",id="main",
                      tabPanel("Main",
                      tabsetPanel(id="tabs",tabPanel("Input data",
@@ -96,13 +68,13 @@ fluidPage(useShinyjs(),theme = shinytheme("united"),useShinyjs(),tags$style("#pa
                               sidebarLayout(
                                 sidebarPanel(
                                   tabsetPanel(type="pills",id="mrnaStep",
-                                              tabPanel("Test mRNA fitting",
-                                                       selectInput("testFit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
-                                                       actionButton("testMRNA","Run mRNA fitting test")),
                                               tabPanel("Main calculation",textInput("ksmin","Value of ksmin",value =3*4*3*3.6*24),
                                                        selectInput("fit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
                                                        actionButton("run_loop","Run calculation")
-                                                       )
+                                                       ),
+                                              tabPanel("Test mRNA fitting",
+                                                       selectInput("testFit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
+                                                       actionButton("testMRNA","Run mRNA fitting test"))
                                   )
                                 ),
                                 mainPanel(plotOutput("testmrnaplot",width = "100%"),

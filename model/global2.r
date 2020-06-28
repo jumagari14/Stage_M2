@@ -120,8 +120,8 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
   output$ellip<-renderPlot({
     pair_ret[[1]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)
   })
-    
-    }
+  
+}
 paramListInput<-function(id){
   ns<-NS(id)
   tagList(uiOutput(ns("listpar")))
@@ -139,7 +139,7 @@ paramList<-function(input,output,session,method){
                            tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
-      })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -172,7 +172,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = 0, max = 1000,value = c(0,200)))))
-  })
+    })
   }
   if (method=="empirique"){
     output$listpar<-renderUI({
@@ -186,7 +186,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
       
-  })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -211,7 +211,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
       
-  })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -256,7 +256,7 @@ paramList<-function(input,output,session,method){
     }
     names(newlist)<-gsub("_sig","",names(newlist))
     parList<-newlist[order(names(newlist))]
-  newlist
+    newlist
   })
   boundList<-reactive({
     if (!exists("x")) x<-reactiveValuesToList(input)
@@ -541,25 +541,25 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     parInit2<-list("start_prot"=init_prot$init,"ks"=ks_min,"kd"=ks_min*0.1)
     parInit3<-list("start_prot"=init_prot$init,"ks"=ks_min*5,"kd"=ks_min*5)
     parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
-
     
-    parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    
+    parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
     browser()
     #print(summary(parMu))
-    sol1<-resol_mu(parMu$par,dpa)
-    # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,warnOnly = TRUE,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    sol1<-resol_mu(coef(parMu),dpa)
+    # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+    parMu2<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
     #print(confint(parMu2))
-    sol2<-resol_mu(parMu2$par,dpa)
-    parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    sol2<-resol_mu(coef(parMu2),dpa)
+    parMu3<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
     #print(confint(parMu3))
-    sol3<-resol_mu(parMu3$par,dpa)
-    parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    sol3<-resol_mu(coef(parMu3),dpa)
+    parMu4<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
     #print(confint(parMu4))
-    sol4<-resol_mu(parMu4$par,dpa)
+    sol4<-resol_mu(coef(parMu4),dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
-    parmu<-cbind(unlist(parMu$par),unlist(parMu2$par),unlist(parMu3$par),unlist(parMu4$par))
-    resnorm<-c(parMu$deviance,parMu2$deviance,parMu3$deviance,parMu4$deviance)
+    parmu<-cbind(coef(parMu),coef(parMu2),coef(parMu3),coef(parMu4))
+    resnorm<-c(deviance(parMu),deviance(parMu2),deviance(parMu3),deviance(parMu4))
     browser()
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
@@ -679,7 +679,7 @@ resol_mu<-function(par,time){
   # data_out<-lsode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,maxsteps = 1e5,verbose = F)
   
   data_out<-ode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,method = "ode45")
-
+  
   # data_out<-ode23s(eqDifPrinc_v2,time[1],time[length(time)],y0=y0,parlist=parList,hmax = 0.2)
   data_out<-data_out[,-1]
   return(data_out)
@@ -708,7 +708,7 @@ matrice_sens<-function(t,parlist){
 derive<-function(t,s,par){
   ks<-par[["ks"]]
   kd<-par[["kd"]]
-
+  
   
   ds1st<-ks*solmRNA(t,fittedmrna$coefs,fitR)-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
   ds2st<--(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]

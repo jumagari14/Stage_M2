@@ -1,5 +1,4 @@
 library(shiny)
-library(shinyjs)
 library(ggplot2)
 library(grid)
 library(egg)
@@ -8,7 +7,6 @@ library(egg)
 
 
 function(input, output, session) {
-  disable("tabRes")
   fit_op<-reactiveValues(data=NULL)
   run_calc<-reactiveValues(data=NULL)
   en_but<-reactiveValues(enable=FALSE)
@@ -28,6 +26,10 @@ function(input, output, session) {
               fileInput("data_file","Choose xls/xlsx file",accept=c(".xls",".xlsx")))
     }
   })
+  observeEvent(input$method_we, {
+    # updateTabsetPanel(session, "params", selected = input$method_we)
+    updateTabsetPanel(session,"formulas",selected = input$method_we)
+  })
   observe({
     if(!is.null(input$data_file)){
       inFile<-input$data_file
@@ -44,7 +46,6 @@ function(input, output, session) {
       protFile<-input$prot_file
       mrnaFile<-input$mrna_file
       mrna_data<-loadData(mrnaFile$datapath,"","",poids=F)
-      browser()
       prot_data<-loadData(protFile$datapath,"","",poids=F)
       colnames(prot_data)[1]<-"Protein"
       colnames(mrna_data)[1]<-"Transcrit"
@@ -159,29 +160,31 @@ function(input, output, session) {
       formula_poids<<-coefs_poids$formula
       fitR<<-input$fit_mrna
       fitWe<<-input$method_we
-      cl <- makeCluster(detectCores() - 1)
-      registerDoParallel(cl)
+      cl1 <- makeCluster(detectCores() - 1)
+      # registerDoParallel(cl1)
       mess<-showNotification(paste("Running..."),duration = NULL,type = "message")
-      clusterEvalQ(cl, {
+      clusterEvalQ(cl1, {
         ## set up each worker.  Could also use clusterExport()
         source("global.r")
         library(shiny)
-        library(shinythemes)
-        library(shinyjs)
         library(ggplot2)
         library(grid)
         library(egg)
+        library(car)
         NULL
       })
       
-      clusterExport(cl,c("poids_coef","formula_poids","ksmin","fitR"))
+      clusterExport(cl1,c("coefs_poids","formula_poids","ksmin","fitR","fitWe","poids_coef"))
       run_calc$run<-TRUE
       if(Sys.info()["sysname"]=="Windows"){
+        # for (el in test_list){
         res_list<-pblapply(X=test_list,function(el){
-          tryCatch({
+          # tryCatch({
             norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
-            fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)$coefs
-            el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna,fitR))
+            fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
+            el$errorMrna<-fittedmrna$error
+            el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
+            el$errorWeight<-coefs_poids$error
             par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
             if (!is.null(par_k)){
               par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
@@ -189,11 +192,18 @@ function(input, output, session) {
               diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
               par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
               el$SOL<-par_k
-              # write.csv(test_list[[cont]][["SOL"]][["solK"]],paste("solK/",paste(test_list[[cont]][["Transcrit_ID"]],"_Sol_ks_kd.csv"),sep = ""))
+              # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+              el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 52)
+              if (any(el$confEllipse<0)){
+                el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+xlim(c(0,max(as.data.frame(el[["confEllipse"]])$x)))+ylim(0,max(as.data.frame(el[["confEllipse"]])$y))+ylab("kd")+xlab("ks")
+              }
+              else {
+                el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+ylab("kd")+xlab("ks")
+              }            
             }
             el
-          },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
-        },cl=cl)
+          # },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
+        },cl=cl1)
      }
       if(Sys.info()["sysname"]=="Linux"){
         # for (el in test_list){
@@ -224,7 +234,7 @@ function(input, output, session) {
           },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
         },cl=detectCores() - 1)
       }
-      stopCluster(cl)
+      stopCluster(cl1)
       valid_res<<-Filter(function(x) {length(x) > 6}, res_list)
       mess<-showNotification(paste("Finished!!"),duration = NULL,type = "message")
       en_but$enable<-TRUE

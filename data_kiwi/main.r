@@ -1,11 +1,11 @@
-# setwd("D:/Stage M2/Stage_M2/model/")
+# setwd("D:/Stage M2/Stage_M2/data_kiwi/")
 setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/data_kiwi/")
-source("../model/global.r")
+source("../model/global2.r")
 
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 # poids_kiwi<-loadData("poids_kiwi.csv","","",T)
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
-test_data<-loadData(data = "Paires_mrna_prot_kiwi_nouvMW.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 # test_list<-sample(test_list,5)
 fitWe<<-"double_sig"
@@ -19,21 +19,20 @@ score=0
 fitR<-"3_deg_log"
 cont<-0
 dir.create("solK")
-numCores<-detectCores() - 1
-cl <- makeCluster(numCores)
-clusterEvalQ(cl, {
-  ## set up each worker.  Could also use clusterExport()
-  source("../model/global.r")
-  library(ggplot2)
-  library(grid)
-  library(egg)
-  NULL
-})
-clusterExport(cl,c("poids_coef","formula_poids","ksmin","fitR"))
+# numCores<-detectCores() - 1
+# cl <- makeCluster(numCores)
+# clusterEvalQ(cl, {
+#   ## set up each worker.  Could also use clusterExport()
+#   source("../model/global.r")
+#   library(ggplot2)
+#   library(grid)
+#   library(egg)
+#   NULL
+# })
+# clusterExport(cl,c("poids_coef","formula_poids","ksmin","fitR"))
 if (Sys.info()["sysname"]=="Windows"){
-  res_list<-pblapply(X=test_list,function(el){
-    # res_list<-parLapply(cl,test_list,function(el){
-    # res_list<-mclapply(test_list,function(el){
+  for (el in test_list){
+  # res_list<-pblapply(X=test_list,function(el){
     tryCatch({
       # cont<-cont+1
       print(el)
@@ -49,7 +48,7 @@ if (Sys.info()["sysname"]=="Windows"){
         X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
         diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
         par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-        para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+        # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
         el$SOL<-par_k
         res[["TranscritID"]]<-el[["Transcrit_ID"]]
         res[["Weight formula"]]<-"Double sigmoid"
@@ -74,7 +73,7 @@ if (Sys.info()["sysname"]=="Windows"){
       print(paste("Process finished for ",el[["Transcrit_ID"]],sep=""))
       res
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-  },cl=cl)
+  }#,cl=cl)
 } else if(Sys.info()["sysname"]=="Linux"){
   for (el in test_list){
   # res_list<-pblapply(X=test_list,function(el){
@@ -94,7 +93,7 @@ if (Sys.info()["sysname"]=="Windows"){
         X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
         diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
         par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-        para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+        # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
         el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 52)
         if (any(el$confEllipse<0)){
           el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+xlim(c(0,max(as.data.frame(el[["confEllipse"]])$x)))+ylim(0,max(as.data.frame(el[["confEllipse"]])$y))+ylab("kd")+xlab("ks")
@@ -102,7 +101,6 @@ if (Sys.info()["sysname"]=="Windows"){
         else {
           el$confEllipsePlot<-ggplot(as.data.frame(el[["confEllipse"]]),aes(x,y))+geom_path()+theme+ylab("kd")+xlab("ks")
         }
-        browser()
         res[["TranscritID"]]<-el[["Transcrit_ID"]]
         res[["Weight formula"]]<-"Double sigmoid"
         res[["Weight error"]]<-coef_poids[["error"]]
@@ -130,7 +128,7 @@ if (Sys.info()["sysname"]=="Windows"){
       # },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   }#,cl=numCores)
 }
-stopCluster(cl)
+# stopCluster(cl)
 valid_res<-Filter(function(x) {length(x) > 0}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)

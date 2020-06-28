@@ -5,6 +5,6 @@ account: jumagari
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2485321
-bundleId: 3298964
+bundleId: 3312445
 url: https://jumagari.shinyapps.io/Protein_Turnover_model/
-when: 1592762342.91363
+when: 1593026474.53702
