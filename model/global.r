@@ -23,7 +23,16 @@ library(car)
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
-# source("input.r")
+Noisify <- function(data,bruit) {
+  #  noise <- runif(length(data), -bruit, bruit)
+  noise<-rnorm(length(data),0,bruit)
+  noisified <- data+noise
+  noisified[noisified<0]=data[noisified<0]*0
+  # si la valeur bruit?e est n?gative, on diminue le bruit 
+  #noisified[noisified<0]=data[noisified<0]+runif(length(noisified[noisified<0]), -data[noisified<0], data[noisified<0])
+  #noisified[noisified<0]=data[noisified<0]+rnorm(length(noisified[noisified<0]), 0,data[noisified<0] )
+  return(noisified)
+}
 stageDensity_v2<-function(mrna_data,proteo_data,days_pca,lab_y,lab_x){
   l<-list()
   l[[1]]<-combineGraphs(mrna_data,proteo_data,"All",moyenne = T)
@@ -543,24 +552,24 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
 
     
-    parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
-    browser()
+    parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa)
     #print(summary(parMu))
     sol1<-resol_mu(parMu$par,dpa)
     # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,warnOnly = TRUE,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa)
     #print(confint(parMu2))
     sol2<-resol_mu(parMu2$par,dpa)
-    parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa)
     #print(confint(parMu3))
     sol3<-resol_mu(parMu3$par,dpa)
-    parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa,control = nls.lm.control(ftol = 1e-6,ptol = 1e-6,maxiter = 400))
+    parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa)
     #print(confint(parMu4))
     sol4<-resol_mu(parMu4$par,dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(unlist(parMu$par),unlist(parMu2$par),unlist(parMu3$par),unlist(parMu4$par))
     resnorm<-c(parMu$deviance,parMu2$deviance,parMu3$deviance,parMu4$deviance)
-    browser()
+    nois1<-Noisify(sol1,min( sqrt(mean(sol1)/6),0.5))
+    test1<-nlsLM(nois1~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
     errg<-sqrt(resnorm)/norm(prot_conc,"2")

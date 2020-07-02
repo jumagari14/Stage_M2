@@ -1,6 +1,6 @@
 # setwd("D:/Stage M2/Stage_M2/data_kiwi/")
 setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/data_kiwi/")
-source("../model/global2.r")
+source("../model/global.r")
 
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 # poids_kiwi<-loadData("poids_kiwi.csv","","",T)
