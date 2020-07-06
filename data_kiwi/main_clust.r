@@ -9,7 +9,7 @@ spec <- matrix(c(
 opt <- getopt(spec)
 print(opt$workDir)
 setwd(opt$workDir)
-source("global.r")
+source("../model/global2.r")
 
 # test_data<-lista[[30]]
 pdf(NULL)

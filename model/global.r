@@ -349,8 +349,8 @@ fitPoids<-function(t,poids,method){
   #   fitting<-nlsLM(formula =formula_fit,start = parlist,data = data.frame("t"=t,"y"=y))
 } 
 fitPoids_v2<-function(t,poids,method,listpar,bounds){
-  # t<-as.numeric(pull(t))
-  # poids<-as.numeric(pull(poids))
+  t<-as.numeric(pull(t))
+  poids<-as.numeric(pull(poids))
   poids<-poids[!is.na(poids)]
   t<-t[!is.na(t)]
   

@@ -197,7 +197,6 @@ function(input, output, session) {
             diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
             par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
             el$SOL<-par_k
-            browser()
             # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
             el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
             if (any(el$confEllipse[["0.9"]]<0 | el$confEllipse[["0.75"]]<0 | el$confEllipse[["0.5"]]<0)){
@@ -217,7 +216,15 @@ function(input, output, session) {
       en_but$enable<-TRUE
       names_trans<-sapply(valid_res,with,Transcrit_ID)
       output$results<-renderUI({
-        tagList(selectInput("res_trans","Select mRNA ID",choices = names_trans))
+        tagList(sidebarLayout(
+          sidebarPanel(
+            downloadButton("downFile","Download data table"),
+            selectInput("res_trans","Select mRNA ID",choices = names_trans),
+            textInput("err_th","Select error threshold",value=0.3),
+            downloadButton("validTable","Download valid table")
+          ),
+          mainPanel(resultsKsKdUI("res_trans"))
+        ))
       })
       
       all_res<-lapply(valid_res, function(el){
@@ -240,7 +247,7 @@ function(input, output, session) {
         res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
         res
       })
-      final_table<-rbindlist(all_res)
+      final_table<<-rbindlist(all_res)
       output$downFile<-downloadHandler(
         filename = function(){
           paste("results_KsKd-",Sys.Date(),".csv",sep="")

@@ -83,13 +83,7 @@ fluidPage(theme = shinytheme("united"),tags$style("#params { display:none; } #fo
                               
                      ),
                      tabPanel("Results",id="tabRes",
-                              sidebarLayout(
-                                sidebarPanel(
-                                  downloadButton("downFile","Download data table"),
-                                  uiOutput("results")
-                                ),
-                                mainPanel(resultsKsKdUI("res_trans"))
-                              )
+                              uiOutput("results")
                               
                               
                      ))),
