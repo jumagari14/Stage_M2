@@ -88,7 +88,7 @@ Noisify <- function(data,bruit) {
   #noisified[noisified<0]=data[noisified<0]+rnorm(length(noisified[noisified<0]), 0,data[noisified<0] )
   return(noisified)
 }
-
+pdf("Fake data test.pdf")
 res_list<-lapply(listPar, function(el){
   tryCatch({
   dt=7
@@ -102,6 +102,7 @@ res_list<-lapply(listPar, function(el){
   val_prot<-Noisify(sol[,2],bruit)
   solb[,2]=val_prot
   el[["Noisy sol"]]=solb
+  el[["Original sol"]]=solb
   # resolution pour ti=0,7,14,...
   #sol=ode(y=p0,times=t,func=f,parms=c(ks=0.31,kd=0.17))
   plot(solb,ylim=c(0,max(sol[,2])),col="green")
@@ -139,20 +140,20 @@ res_list<-lapply(listPar, function(el){
   el[["coefs"]]=coef(fit)
   theo<-ode(y=coef(fit)[3],times=sol[,1],func=fmu,parms=coef(fit))
   hauteur=max(max(sol[,2]),max(solb[,2]))
-  plot(theo[,1],theo[,2],type="l",main="Fit Test ", col="green",ylim=c(0,10),xlab="t (days)", ylab="Proteins")
+  plot(theo[,1],theo[,2],type="l",main="Fit Test ", col="green",ylim=c(0,14),xlab="t (days)", ylab="Proteins")
   points(t,solb$p,pch=1,col="red")
   points(sol[,1],sol[,2],col="blue",pch=4)
   par(new=TRUE)
-  theo_exact<-ode(y=p0,times=sol[,1],func=fmu,parms=c(ks=ks_vrai,kd=kd_vrai))
+  theo_exact<-ode(y=p0,times=sol[,1],func=fmu,parms=c(ks=el[["ks"]],kd=el[["kd"]]))
   eq2 = paste0("ks=",round(el[["ks"]],3), " kd=",round(el[["kd"]],3)," Fit: ks = ", round(coef(fit)[1],4)," kd=",round(coef(fit)[2],4))
-  plot(theo_exact[,1],theo_exact[,2],type="l",xlab="t (days)", ylab="Proteins",ylim=c(0,10),sub=eq2,col="blue")
+  plot(theo_exact[,1],theo_exact[,2],type="l",xlab="t (days)", ylab="Proteins",ylim=c(0,14),sub=eq2,col="blue")
   legend("top",c("fitted curve","noisified points","exact points","exact curve"),lty=c(1,NA,NA,1),pch=c(NA,1,1,NA),col =c("green","red","blue","blue"),cex=0.5)
   el[["theo"]]<-theo
   el[["theo_exact"]]<-theo_exact
   return(el)
   },error=function(e) NULL)
 })
-
+dev.off()
 
 
 
