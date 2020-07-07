@@ -200,9 +200,11 @@ function(input, output, session) {
             # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
             el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
             if (any(el$confEllipse[["0.9"]]<0 | el$confEllipse[["0.75"]]<0 | el$confEllipse[["0.5"]]<0)){
+              el$validEllipse<-FALSE
               el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+coord_cartesian(xlim=(c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$x))),ylim = (c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$y))))+ylab("kd")+xlab("ks")
             }
             else {
+              el$validEllipse<-TRUE
               el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+ylab("kd")+xlab("ks")
               ## check ellipse package 
               }
@@ -245,7 +247,8 @@ function(input, output, session) {
         res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
         res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
         res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
-        res
+        res[["Valid confidence ellipse"]]<-el[["validEllipse"]]
+        return(res)
       })
       final_table<<-rbindlist(all_res)
       output$downFile<-downloadHandler(
@@ -261,7 +264,25 @@ function(input, output, session) {
       
     }
   })
-
+  
+  observe({
+    req(exists("final_table"))
+    # browser()
+    # if (as.numeric(as.character(input$err_th))<=0){
+    #   showNotification("Invalid threshold value",type = "error")
+    # }
+    valid_table<<-final_table[which((final_table$`Fitting error value`<as.numeric(as.character(input$err_th))) & (final_table$`Valid confidence ellipse`==TRUE)),]
+    output$downFile<-downloadHandler(
+      filename = function(){
+        paste("validResults_KsKd-",Sys.Date(),".csv",sep="")
+      },
+      content = function(file){
+        write.csv(valid_table,file)
+      },contentType = "text/csv"
+      
+    )
+  })
+# (final_table$`Optimization error score`==10) &
   observeEvent(input$res_trans,{
     callModule(resultsKsKd,"res_trans",valid_res,input$res_trans)})
   onStop(function() {
