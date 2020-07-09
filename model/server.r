@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(ggplot2)
 library(grid)
 library(egg)
@@ -88,7 +89,7 @@ function(input, output, session) {
   # }
   # # })
 
-  observeEvent(input$method_we,{
+  observe({
     parList<-callModule(paramList,"params",input$method_we)
     parList<<-parList$parms
     boundList<<-parList$bounds})
@@ -198,11 +199,13 @@ function(input, output, session) {
             par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
             el$SOL<-par_k
             # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+            
             el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
+            # el$confEllipse_2<-ellipse::ellipse(el[["SOL"]][["modelList"]][["model1"]],which = c("ks","kd"),levels=c(0.9,0.75,0.5))        
             if (any(el$confEllipse[["0.9"]]<0 | el$confEllipse[["0.75"]]<0 | el$confEllipse[["0.5"]]<0)){
               el$validEllipse<-FALSE
               el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+coord_cartesian(xlim=(c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$x))),ylim = (c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$y))))+ylab("kd")+xlab("ks")
-            }
+            } 
             else {
               el$validEllipse<-TRUE
               el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+ylab("kd")+xlab("ks")
@@ -266,13 +269,13 @@ function(input, output, session) {
   })
   
   observe({
+    
     req(exists("final_table"))
-    # browser()
     # if (as.numeric(as.character(input$err_th))<=0){
     #   showNotification("Invalid threshold value",type = "error")
     # }
     valid_table<<-final_table[which((final_table$`Fitting error value`<as.numeric(as.character(input$err_th))) & (final_table$`Valid confidence ellipse`==TRUE)),]
-    output$downFile<-downloadHandler(
+    output$validTable<-downloadHandler(
       filename = function(){
         paste("validResults_KsKd-",Sys.Date(),".csv",sep="")
       },
@@ -281,6 +284,10 @@ function(input, output, session) {
       },contentType = "text/csv"
       
     )
+    if (nrow(valid_table)==0){
+      shinyjs::disable("validTable")
+      showNotification("No valid results are found",type = "error")
+    }
   })
 # (final_table$`Optimization error score`==10) &
   observeEvent(input$res_trans,{

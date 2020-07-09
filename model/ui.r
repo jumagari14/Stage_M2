@@ -4,6 +4,7 @@ rm(list = ls())
 
 library(shiny)
 library(shinythemes)
+library(shinyjs)
 
 formula_tabs<-tabsetPanel(
   tabPanel("double_sig",
@@ -25,7 +26,7 @@ formula_tabs<-tabsetPanel(
 
 )
 
-fluidPage(theme = shinytheme("united"),tags$style("#params { display:none; } #formulas { display:none; }"),
+fluidPage(theme = shinytheme("united"),useShinyjs(),tags$style("#params { display:none; } #formulas { display:none; }"),
           navbarPage("Protein turnover model",id="main",
                      tabPanel("Main",
                      tabsetPanel(id="tabs",tabPanel("Input data",

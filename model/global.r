@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car","ellipse")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 
@@ -20,6 +20,7 @@ library(reader)
 library(pbapply)
 library(markdown)
 library(car)
+library(ellipse)
 
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
@@ -145,9 +146,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 100),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 1))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
@@ -174,13 +175,13 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
                                    textInput(ns("par7_sig"),"Enter value of g",value = 90))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = 0, max = 1000,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = -200, max = 200,value = c(0,200)))))
   })
   }
   if (method=="empirique"){
@@ -191,9 +192,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 8),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 7))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
   })
     x<-reactiveValuesToList(input)
@@ -216,9 +217,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 114.39),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 0.52))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = 0, max = 1000,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = 0, max = 1000,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
   })
     x<-reactiveValuesToList(input)
