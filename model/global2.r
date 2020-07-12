@@ -547,7 +547,7 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     
     
     parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    browser()
+    
     #print(summary(parMu))
     sol1<-resol_mu(coef(parMu),dpa)
     # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
@@ -563,7 +563,7 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(coef(parMu),coef(parMu2),coef(parMu3),coef(parMu4))
     resnorm<-c(deviance(parMu),deviance(parMu2),deviance(parMu3),deviance(parMu4))
-    browser()
+    
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
     errg<-sqrt(resnorm)/norm(prot_conc,"2")
