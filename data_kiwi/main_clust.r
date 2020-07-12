@@ -47,7 +47,7 @@ res_list<-mclapply(test_list,function(el){
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
       diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-      para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
+      # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
       el$SOL<-par_k
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
