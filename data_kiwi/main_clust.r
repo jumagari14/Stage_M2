@@ -13,12 +13,12 @@ source("../model/global2.r")
 
 # test_data<-lista[[30]]
 pdf(NULL)
-poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
-test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Poids")
+test_data<-loadData(data = opt$mainFile,trans_sheet = "RNA",prot_sheet = "Protein",F)
 test_list<-test_data$parse
+days_kiwi<-test_list[[1]][["DPA"]]
 fitWe<<-"double_sig"
-coef_poids<-fitPoids(poids_kiwi$DPA,poids_kiwi$Weight_g,fitWe)
+coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
 val_mu<-mu(c(poids_kiwi$DPA),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
