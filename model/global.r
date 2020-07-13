@@ -423,8 +423,8 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
 } 
 
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
-  # colnames(t)<-"t"
-  # colnames(y)<-"y"
+  colnames(t)<-"t"
+  colnames(y)<-"y"
   fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=as.matrix(t),"y"=as.matrix(y))),upper = ub,lower = lb)
   return(fitting)
 }
@@ -438,15 +438,18 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
   if (grepl("xls[x]*",data,perl = T)){
     data_trans<-read_xlsx(path = data,sheet = trans_sheet)
     data_prot<-read_xlsx(path = data,sheet =prot_sheet)
+    data_prot[,3:ncol(data_prot)]<-sapply(data_prot[,3:ncol(data_prot)], as.numeric)
+    data_trans[,3:ncol(data_trans)]<-sapply(data_trans[,3:ncol(data_trans)], as.numeric)
     colnames(data_prot)[1]<-"Protein"
     colnames(data_trans)[1]<-"Transcrit"
+    colnames(data_prot)<-gsub("\\.\\.\\.[0-9]*","",colnames(data_prot))
     t<-round(as.numeric(colnames(data_prot)[-which(is.na(as.numeric(as.character(colnames(data_prot)))))]))
     
-    total_data<-merge(data_trans,data_prot)
+    total_data<-merge(data_trans,data_prot,by=c("Protein","Transcrit"))
     
     lista<-vector("list",nrow(data_trans))
     for (i in seq(1,nrow(total_data))){
-      lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=t)
+      lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:ncol(data_trans)]),"Protein_val"=as.matrix(total_data[i,(ncol(data_trans)+1):ncol(total_data)]),"DPA"=t)
       
     }
     return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
@@ -553,17 +556,17 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
 
     
-    parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa)
+    parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0))
     #print(summary(parMu))
     sol1<-resol_mu(parMu$par,dpa)
     # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,warnOnly = TRUE,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa)
+    parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0))
     #print(confint(parMu2))
     sol2<-resol_mu(parMu2$par,dpa)
-    parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa)
+    parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0))
     #print(confint(parMu3))
     sol3<-resol_mu(parMu3$par,dpa)
-    parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa)
+    parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0))
     #print(confint(parMu4))
     sol4<-resol_mu(parMu4$par,dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
