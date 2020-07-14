@@ -1,7 +1,7 @@
-setwd("E:/Stage M2/Stage_M2/data_kiwi/")
-# setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/data_kiwi/")
+# setwd("E:/Stage M2/Stage_M2/data_kiwi/")
+setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/data_kiwi/")
 source("../model/global.r")
-
+debug(confEllipse)
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 # poids_kiwi<-loadData("poids_kiwi.csv","","",T)
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)

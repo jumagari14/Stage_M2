@@ -423,8 +423,8 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
 } 
 
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
-  colnames(t)<-"t"
-  colnames(y)<-"y"
+  names(t)<-"t"
+  names(y)<-"y"
   fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=as.matrix(t),"y"=as.matrix(y))),upper = ub,lower = lb)
   return(fitting)
 }
@@ -580,12 +580,17 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
     err_mes<-scoreErreur(error)
     err_mes[["errg"]]<-errg
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
+    confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
     return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list))
   }
   
 }
 funToMin<-function(par,exp_data,time){
   return(exp_data-resol_mu(par,time))
+}
+funtoMin_ssq<-function(p,exp_data,time){
+  names(p)<-c("start_prot","ks","kd")
+  return(sum(exp_data-resol_mu(par=p,time = time))^2)
 }
 evalOptim<-function(parmu){
   parmu1<-as.vector(parmu[,1])
@@ -771,3 +776,37 @@ eqDifPrinc2<-function(t,s,par){
   return(list(y_res))
 }
 
+confEllipse<-function(model,prot_data,dpa){
+  nlsfit<-nlm(funtoMin_ssq,p=unlist(model$par),exp_data=prot_data,time=dpa)
+  ecartmin<-nlsfit$minimum
+  n<-length(prot_data)
+  p<-2
+  #risque pour la r?gion de confiance des param?tres
+  alpha=c(0.9,0.75,0.5)
+  # seuil au risque alpha
+  seuil<-ecartmin*(1+p/(n-p)*qf(alpha,df1=p,df2=n-p))
+  kdseq<-seq(from =0.5*model$par$kd, to =1.5*model$par$kd, length=50)
+  ksseq<-seq(from =0.5*model$par$ks, to =1.5*model$par$ks, length=50)
+  # grille de valeurs p=(mu,ks)
+  ecartgrid<-matrix(nrow=length(ksseq),ncol=length(kdseq))
+  # trac? dans le plan (ks,mu) de valeur p minimisant ecart(p)
+  plot(nlsfit$estimate[2],nlsfit$estimate[3],pch=3,las=1,xlab=expression(paste(mu[m],"[1:h]")),ylab=expression(paste(K[s],"[mg/l] lactose")))
+  for (i in 1:50){
+    for (j in 1:50){
+      #calcul ecart(p de la grille) 
+      ecartgrid[i,j]<-funtoMin_ssq(p=c(model$par$start_prot,ksseq[i],kdseq[j]),exp_data = prot_data,time = dpa)
+      # ecart(p de la grille)>seuil, on trace le point dans le plan (ks,mu)
+      # if (ecartgrid[i,j]>seuil){
+      #   points(ksseq[i],kdseq[j],pch=3,cex=0.5)
+      # }
+    }
+  }
+  browser()
+  # utilisation de contour pour couper "proprement" la r?gion au niveau du seuil
+  contour(museq,ksseq,ecartgrid,col="red",levels=seuil,drawlabels=FALSE,xlab=expression(paste(mu[m],"[1:h]")),ylab=expression(paste(K[s],"[mg/l] lactose")),main="R?gion de confiance des param?tres")
+  points(nlsfit$estimate[1],nlsfit$estimate[2],pch=3)
+  # pour un seuil au risque 2*alpha
+  seuil2<-ecartmin*(1+p/(n-p)*qf(p=1-alpha*2,df1=p,df2=n-p))
+  contour(museq,ksseq,ecartgrid,add=TRUE,col="blue",levels=seuil2,drawlabels=FALSE,xlab=expression(paste(mu[m],"[1:h]")),ylab=expression(paste(K[s],"[mg/l] lactose")),main="R?gion de confiance des param?tres")
+  legend("bottomright",inset=0.01,legend=c("alpha=5%","alpha=10%"),pch=c(1,19),col=c("red","blue"))
+}
