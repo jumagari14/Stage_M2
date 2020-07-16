@@ -13,8 +13,8 @@ source("../model/global.r")
 
 # test_data<-lista[[30]]
 pdf(NULL)
-poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Poids")
-test_data<-loadData(data = opt$mainFile,trans_sheet = "RNA",prot_sheet = "Protein",F)
+poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
+test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 days_kiwi<-test_list[[1]][["DPA"]]
 fitWe<<-"double_sig"

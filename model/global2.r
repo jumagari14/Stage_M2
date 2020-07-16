@@ -540,12 +540,11 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
       prot_conc<-prot_conc[-index_nan]
     }
     init<-init_prot$init
-    parInit<-list("start_prot"=init,"ks"=ks_min*0.03,"kd"=ks_min*0.3)
-    parInit2<-list("start_prot"=init,"ks"=ks_min*0.02,"kd"=ks_min*0.1)
-    parInit3<-list("start_prot"=init,"ks"=ks_min*0.05,"kd"=ks_min*5)
-    parInit4<-list("start_prot"=init,"ks"=ks_min*1e-4,"kd"=ks_min*10)
-    
-    
+    parInit<-list("start_prot"=init,"ks"=ksnorm[2]*0.03,"kd"=ks_min*0.3)
+    parInit2<-list("start_prot"=init,"ks"=ksnorm[2]*0.02,"kd"=ks_min*0.1)
+    parInit3<-list("start_prot"=init,"ks"=ksnorm[2]*0.05,"kd"=ks_min*5)
+    parInit4<-list("start_prot"=init,"ks"=ksnorm[2]*1e-4,"kd"=ks_min*10)
+  
     parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],1440))
     
     #print(summary(parMu))
