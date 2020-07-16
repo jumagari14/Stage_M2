@@ -37,8 +37,8 @@ function(input, output, session) {
       list_data<-loadData(inFile$datapath,input$rna_tab,input$protein_tab,poids=F)
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
-      test_list<-list_data$parse
-      test_list<<-sample(test_list,3)
+      test_list<<-list_data$parse
+      # test_list<<-sample(test_list,3)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       test_el<<-sample(test_list,1)[[1]]

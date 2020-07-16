@@ -527,7 +527,7 @@ fit_testRNA<-function(dpa,mrna,fitR){
   
   return(list("coefs"=ret,"error"=fitErrMRNA))
 }
-solgss_Borne<-function(dpa,prot_conc,ks_min,score){
+solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
   
   init_prot<-init_conc(dpa,prot_conc)
   if (is.nan(init_prot$init)){
@@ -539,25 +539,25 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,score){
       dpa<-dpa[-index_nan]
       prot_conc<-prot_conc[-index_nan]
     }
+    init<-init_prot$init
+    parInit<-list("start_prot"=init,"ks"=ks_min*0.03,"kd"=ks_min*0.3)
+    parInit2<-list("start_prot"=init,"ks"=ks_min*0.02,"kd"=ks_min*0.1)
+    parInit3<-list("start_prot"=init,"ks"=ks_min*0.05,"kd"=ks_min*5)
+    parInit4<-list("start_prot"=init,"ks"=ks_min*1e-4,"kd"=ks_min*10)
     
-    parInit<-list("start_prot"=init_prot$init,"ks"=ks_min*3,"kd"=ks_min*0.3)
-    parInit2<-list("start_prot"=init_prot$init,"ks"=ks_min,"kd"=ks_min*0.1)
-    parInit3<-list("start_prot"=init_prot$init,"ks"=ks_min*5,"kd"=ks_min*5)
-    parInit4<-list("start_prot"=init_prot$init,"ks"=ks_min*10,"kd"=ks_min*10)
     
-    
-    parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+    parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],1440))
     
     #print(summary(parMu))
     sol1<-resol_mu(coef(parMu),dpa)
     # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    parMu2<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+    parMu2<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],1440))
     #print(confint(parMu2))
     sol2<-resol_mu(coef(parMu2),dpa)
-    parMu3<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+    parMu3<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],1440))
     #print(confint(parMu3))
     sol3<-resol_mu(coef(parMu3),dpa)
-    parMu4<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+    parMu4<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],1440))
     #print(confint(parMu4))
     sol4<-resol_mu(coef(parMu4),dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)

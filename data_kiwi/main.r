@@ -1,12 +1,12 @@
-# setwd("E:/Stage M2/Stage_M2/data_kiwi/")
-setwd("/media/juanma/JUANMA/Stage M2/Stage_M2/data_kiwi/")
+setwd("../data_kiwi/")
 source("../model/global.r")
-debug(confEllipse)
+# debug(solgss_Borne)
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 # poids_kiwi<-loadData("poids_kiwi.csv","","",T)
 days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
 test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
+# test_list<-test_list[-1]
 # test_list<-sample(test_list,5)
 fitWe<<-"double_sig"
 coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
@@ -15,10 +15,7 @@ formula_poids<<-coef_poids$formula
 val_mu<-mu(c(poids_kiwi$t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
 plot(poids_kiwi$t,val_mu,"l")
 ksmin=3*4*3*3.6*24
-score=0
 fitR<-"3_deg_log"
-cont<-0
-dir.create("solK")
 # numCores<-detectCores() - 1
 # cl <- makeCluster(numCores)
 # clusterEvalQ(cl, {
@@ -33,15 +30,16 @@ dir.create("solK")
 if (Sys.info()["sysname"]=="Windows"){
   for (el in test_list){
   # res_list<-pblapply(X=test_list,function(el){
-    tryCatch({
+    # tryCatch({
       # cont<-cont+1
       print(el)
       el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
       print(el[["Transcrit_ID"]])
+      bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
       norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
       fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
       el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
-      par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
+      par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks)
       if (!is.null(par_k)){
         res<-list()
         par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
@@ -72,7 +70,7 @@ if (Sys.info()["sysname"]=="Windows"){
       }
       print(paste("Process finished for ",el[["Transcrit_ID"]],sep=""))
       res
-    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+    # },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   }#,cl=cl)
 } else if(Sys.info()["sysname"]=="Linux"){
   for (el in test_list){
@@ -82,10 +80,11 @@ if (Sys.info()["sysname"]=="Windows"){
     print(el)
     el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
     print(el[["Transcrit_ID"]])
+    bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
     el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
-    par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
+    par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks)
       if (!is.null(par_k)){
         el$SOL<-par_k
         res<-list()
