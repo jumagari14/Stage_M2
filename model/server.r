@@ -186,12 +186,13 @@ function(input, output, session) {
      # res_list<-for (el in test_list){
     res_list<-pblapply(X=test_list,function(el){
         # tryCatch({
+      bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
           fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
           el$errorMrna<-fittedmrna$error
           el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
           el$errorWeight<-coefs_poids$error
-          par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),score)
+          par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks)
           if (!is.null(par_k)){
             par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
             X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
