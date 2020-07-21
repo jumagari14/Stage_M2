@@ -1,11 +1,12 @@
 setwd("../data_kiwi/")
 source("../model/global.r")
-# debug(solgss_Borne)
+debug(solgss_Borne)
+debug(confEllipse)
 poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
-# poids_kiwi<-loadData("poids_kiwi.csv","","",T)
-days_kiwi<-rep(c(0,13,26,39,55,76,118,179,222), each = 3)
+# poids_kiwi<-loadData("poids_kiwi.csv","","",T))
 test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
+days_kiwi<-test_list[[1]][["DPA"]]
 # test_list<-test_list[-1]
 # test_list<-sample(test_list,5)
 fitWe<<-"double_sig"

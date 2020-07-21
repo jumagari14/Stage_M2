@@ -185,8 +185,8 @@ function(input, output, session) {
       }
      # res_list<-for (el in test_list){
     res_list<-pblapply(X=test_list,function(el){
-        # tryCatch({
-      bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
+        tryCatch({
+          bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
           fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
           el$errorMrna<-fittedmrna$error
@@ -200,21 +200,20 @@ function(input, output, session) {
             par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
             el$SOL<-par_k
             # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
-            
             el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
-            # el$confEllipse_2<-ellipse::ellipse(el[["SOL"]][["modelList"]][["model1"]],which = c("ks","kd"),levels=c(0.9,0.75,0.5))        
+            # el$confEllipse<-ellipse::ellipse(el[["SOL"]][["modelList"]][["model1"]],which = c("ks","kd"),level=c(0.9,0.75,0.5),t=deviance(el[["SOL"]][["modelList"]][["model1"]])*(1+2/(length(el$Protein_val)-2)*qf(c(0.9,0.75,0.5),df1=length(el$Protein_val),df2=length(el$Protein_val)-2)))
             if (any(el$confEllipse[["0.9"]]<0 | el$confEllipse[["0.75"]]<0 | el$confEllipse[["0.5"]]<0)){
               el$validEllipse<-FALSE
-              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+coord_cartesian(xlim=(c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$x))),ylim = (c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$y))))+ylab("kd")+xlab("ks")
+              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+coord_cartesian(xlim=(c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$x))),ylim = (c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$y))))+ylab("kd")+xlab("Ks")
             } 
             else {
               el$validEllipse<-TRUE
-              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+ylab("kd")+xlab("ks")
+              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+ylab("kd")+xlab("Ks")
               ## check ellipse package 
               }
           }
           return(el)
-        # },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
+        },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
       },cl=num_cor)
       stopCluster(cl1)
       valid_res<<-Filter(function(x) {length(x) > 6}, res_list)

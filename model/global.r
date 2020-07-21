@@ -109,7 +109,7 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
   })
   output$ellip<-renderPlot({
-    pair_ret[[1]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)
+    grid.arrange(pair_ret[[1]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE),pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
   })
     
     }
@@ -531,27 +531,34 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
       prot_conc<-prot_conc[-index_nan]
     }
     init<-init_prot$init
-    parInit<-list("start_prot"=init,"ks"=ksnorm[2]*0.03,"kd"=4.5e-3*3)
-    parInit2<-list("start_prot"=init,"ks"=ksnorm[2]*0.02,"kd"=4.5e-3*20)
-    parInit3<-list("start_prot"=init,"ks"=ksnorm[2]*0.05,"kd"=4.5e-3*50)
-    parInit4<-list("start_prot"=init,"ks"=ksnorm[2]*1e-4,"kd"=4.5e-3*1e3)
-    parMu<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
+    parInit<-list("start_prot"=init,"ks"=ks_min*3,"kd"=ks_min*0.3)
+    parInit2<-list("start_prot"=init,"ks"=ks_min,"kd"=ks_min*0.1)
+    parInit3<-list("start_prot"=init,"ks"=ks_min*5,"kd"=ks_min*5)
+    parInit4<-list("start_prot"=init,"ks"=ks_min*10,"kd"=ks_min*10)
+    
+    # parInit<-list("start_prot"=init,"ks"=ksnorm[2]*0.03,"kd"=4.5e-3*3)
+    # parInit2<-list("start_prot"=init,"ks"=ksnorm[2]*0.02,"kd"=4.5e-3*20)
+    # parInit3<-list("start_prot"=init,"ks"=ksnorm[2]*0.05,"kd"=4.5e-3*50)
+    # parInit4<-list("start_prot"=init,"ks"=ksnorm[2]*1e-4,"kd"=4.5e-3*1e3)
+    # upper = c(Inf,ksnorm[2],24)
+    # c(0,ksnorm[1],4.5e-3)
+    parMu<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     # parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
     #print(summary(parMu))
     sol1<-fitted(parMu)
     # sol1<-resol_mu(coef(parMu),dpa)
     # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,warnOnly = TRUE,tol=1e-6),algorithm = "port",lower = c(0,0,0))
-    parMu2<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
+    parMu2<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     # parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
     #print(confint(parMu2))
     sol2<-fitted(parMu2)
     # sol2<-resol_mu(coef(parMu2),dpa)
-    parMu3<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
+    parMu3<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     # parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
     #print(confint(parMu3))
     sol3<-fitted(parMu3)
     # sol3<-resol_mu(coef(parMu3),dpa)
-    parMu4<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
+    parMu4<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     # parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
     #print(confint(parMu4))
     sol4<-fitted(parMu4)
@@ -569,17 +576,15 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     err_mes[["errg"]]<-errg
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
     
-    # confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list))
+    curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"manualEllipse"=curveEllipse))
   }
   
 }
-funToMin<-function(par,exp_data,time){
-  return(exp_data-resol_mu(par,time))
-}
+
 funtoMin_ssq<-function(p,exp_data,time){
   names(p)<-c("start_prot","ks","kd")
-  return(sum((exp_data-resol_mu(par=c("start_prot"=p[["start_prot"]],"ks"=p[["ks"]],"kd"=p[["kd"]]),time = time))^2))
+  return(sum((exp_data-ode(y=p[["start_prot"]],times = time,func = eqDifPrinc,parms = c(ks=p[["ks"]],kd=p[["kd"]]),method = "ode45")[,2])^2))
 }
 evalOptim<-function(parmu){
   parmu1<-as.vector(parmu[,1])
@@ -672,25 +677,6 @@ init_conc<-function(dpa,prot_conc){
   }
   return(list("init"=p0,"min"=pMin,"max"=pMax))
 }
-resol_mu<-function(par,time){
-  u_time<-unique(time)
-  y0<-par[["start_prot"]]
-  
-  # y0<-parList$star_prot
-  if (is.na(y0)) print(y0)
-  
-  # parList$start_prot<-NULL
-  parList<-par[-1]
-  
-  # data_out<-odeFitting(time,y0,eqDifPrinc,parlist = parList)
-  # data_out<-lsode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,maxsteps = 1e5,verbose = F)
-  
-  data_out<-ode(y=c(y=y0),time,func = eqDifPrinc,parms = parList,method = "ode45")
-
-  # data_out<-ode23s(eqDifPrinc_v2,time[1],time[length(time)],y0=y0,parlist=parList,hmax = 0.2)
-  data_out<-data_out[,-1]
-  return(data_out)
-}
 eqDifPrinc<-function(time,state,par){
   # y<-state["y"]
   ks<-par["ks"]
@@ -772,19 +758,25 @@ confEllipse<-function(model,prot_data,dpa){
   n<-length(prot_data)
   p<-2
   #risque pour la r?gion de confiance des param?tres
-  alpha=0.5
+  alpha=c(0.9,0.75,0.5)
   # seuil au risque alpha
   seuil<-ecartmin*(1+p/(n-p)*qf(alpha,df1=p,df2=n-p))
   kdseq<-seq(from =0.5*par[["kd"]], to =2*par[["kd"]], length=50)
   ksseq<-seq(from =0.5*par[["ks"]], to =2*par[["ks"]], length=50)
   # grille de valeurs p=(mu,ks)
+  grid_expand<-matrix(nrow = length(ksseq)*length(kdseq),ncol=3)
   ecartgrid<-matrix(nrow=length(ksseq),ncol=length(kdseq))
+  cont<-1
   # trac? dans le plan (ks,mu) de valeur p minimisant ecart(p)
   plot(nlsfit$estimate[2],nlsfit$estimate[3],pch=3,las=1,xlab=expression(paste(mu[m],"[1:h]")),ylab=expression(paste(K[s],"[mg/l] lactose")))
   for (i in 1:50){
     for (j in 1:50){
       #calcul ecart(p de la grille) 
       ecartgrid[i,j]<-funtoMin_ssq(p=c(par[["start_prot"]],ksseq[i],kdseq[j]),exp_data = prot_data,time = dpa)
+      grid_expand[cont,1]<-ksseq[i]
+      grid_expand[cont,2]<-kdseq[j]
+      grid_expand[cont,3]<-ecartgrid[i,j]
+      cont<-cont+1
       # ecart(p de la grille)>seuil, on trace le point dans le plan (ks,mu)
       # if (ecartgrid[i,j]>seuil){
       #   points(ksseq[i],kdseq[j],pch=3,cex=0.5)
@@ -792,9 +784,14 @@ confEllipse<-function(model,prot_data,dpa){
     }
   }
   
-  # utilisation de contour pour couper "proprement" la r?gion au niveau du seuil
-  contour(ksseq,kdseq,ecartgrid,col="red",levels=c(ecartmin*1.25,seuil),drawlabels=FALSE,xlim=c(0,10),ylim=c(0,10),main="R?gion de confiance des param?tres")
-  points(nlsfit$estimate[2],nlsfit$estimate[3],pch=3)
-  # pour un seuil au risque 2*alpha
-  legend("bottomright",inset=0.01,legend=c("alpha=5%","alpha=10%"),pch=c(1,19),col=c("red","blue"))
+  grid_expand<-data.frame(grid_expand)
+  colnames(grid_expand)<-c("ks","kd","SSQ")
+  return(ggplot(grid_expand,aes(x = ks,y = kd,z=SSQ))+stat_contour(breaks=seuil,aes(colour=as.factor(..level..)))+theme+scale_color_manual(name="Confidence levels",labels=c("0.9","0.75","0.5"),values=c("red", "blue","darkgreen"))+geom_point(aes(x=par[["ks"]],y=par[["kd"]]),colour="black"))
+  # # utilisation de contour pour couper "proprement" la r?gion au niveau du seuil
+  # lines_cont<-contourLines(ksseq,kdseq,ecartgrid,levels = seuil)
+  # A<-do.call(rbind,lapply(lines_cont,as.data.frame))
+  # contour(ksseq,kdseq,ecartgrid,col=c("red","green","blue"),levels=seuil,drawlabels=FALSE,xlim=c(min(ksseq),max(ksseq)),ylim=c(min(kdseq),max(kdseq)),main="Région de confiance des param?tres")
+  # points(nlsfit$estimate[2],nlsfit$estimate[3],pch=3)
+  # # pour un seuil au risque 2*alpha
+  # legend("bottomright",inset=0.01,legend=c("alpha=5%","alpha=10%"),pch=c(1,19),col=c("red","blue"))
 }
