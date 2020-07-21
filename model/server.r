@@ -1,5 +1,4 @@
 library(shiny)
-library(shinyjs)
 library(ggplot2)
 library(grid)
 library(egg)
@@ -41,7 +40,10 @@ function(input, output, session) {
       # test_list<<-sample(test_list,3)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
-      test_el<<-sample(test_list,1)[[1]]
+      # test_el<<-sample(test_list,1)[[1]])
+      output$select_pair<-renderUI({
+        selectInput("sel_pair","Select protein",unlist(list.map(test_list,Transcrit_ID)))
+      })
     }
     if((!is.null(input$prot_file)) & (!is.null(input$mrna_file))){
       protFile<-input$prot_file
@@ -134,7 +136,8 @@ function(input, output, session) {
     rm("parList","boundList","g_mu","g_rel_mu","coefs_poids",envir = .GlobalEnv)
   })
   observeEvent(input$testMRNA,{
-    req(exists("test_el"))
+    callModule(mrnaTest,"select_pair")
+    
     fitR<-input$testFit_mrna
     norm_data<-normaMean(test_el$Protein_val,test_el$Transcrit_val,10)
     test_fitmrna<<-fit_testRNA(test_el$DPA,norm_data$mrna,fitR)
@@ -185,6 +188,7 @@ function(input, output, session) {
       }
      # res_list<-for (el in test_list){
     res_list<-pblapply(X=test_list,function(el){
+      print(el[["Transcrit_ID"]])
         tryCatch({
           bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)

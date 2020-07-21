@@ -566,7 +566,6 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(coef(parMu),coef(parMu2),coef(parMu3),coef(parMu4))
     resnorm<-c(deviance(parMu),deviance(parMu2),deviance(parMu3),deviance(parMu4))
-    
     # nois1<-Noisify(sol1,min( sqrt(mean(sol1)/6),0.5))
     # test1<-nlsLM(nois1~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
     opt_setp<-evalOptim(parmu)
@@ -576,8 +575,8 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     err_mes[["errg"]]<-errg
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
     
-    curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"manualEllipse"=curveEllipse))
+    # curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list))#,"manualEllipse"=curveEllipse))
   }
   
 }
@@ -681,7 +680,7 @@ eqDifPrinc<-function(time,state,par){
   # y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
-  val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*state
+  val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)/predict(formula_poids,data.frame(t=time)))*state
   
   return(list(val))
 }

@@ -690,7 +690,7 @@ eqDifPrinc<-function(time,state,par){
   # y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
-  val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*state
+  val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)/predict(formula_poids,data.frame(t=time)))*state
   
   return(list(val))
 }

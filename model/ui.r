@@ -74,6 +74,7 @@ fluidPage(theme = shinytheme("united"),useShinyjs(),tags$style("#params { displa
                                                        actionButton("run_loop","Run calculation")
                                                        ),
                                               tabPanel("Test mRNA fitting",
+                                                       uiOutput("select_pair"),
                                                        selectInput("testFit_mrna","Select fitting formula",choices=c("3rd degree polynomial"="3_deg","6th degree polynomial"="6_deg","3rd degree logarithmic polynomial"="3_deg_log")),
                                                        actionButton("testMRNA","Run mRNA fitting test"))
                                   )
