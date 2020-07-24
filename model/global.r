@@ -97,19 +97,20 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     ks1<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
     ks2<-paste("Normalized ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
     ks3<-paste("Kd value",pair_ret[[1]][["SOL"]][["solK"]][3,1])
+    mes0<-paste("Protein fitting error: ",pair_ret[[1]][["SOL"]][["error"]][["errg"]][1])
     mes1<-paste("Error message: ",pair_ret[[1]][["SOL"]][["error"]][["message"]])
     mes2<-paste("Score of protein fitting error: ",pair_ret[[1]][["SOL"]][["error"]][["score"]])
     mes3<-paste("Optimization message: ",pair_ret[[1]][["SOL"]][["opt_eval"]][["message"]])
     mes4<-paste("Optimization score: ",pair_ret[[1]][["SOL"]][["opt_eval"]][["score"]])
     mes5<-paste("mRNA fitting error: ",pair_ret[[1]][["errorMrna"]])
     mes6<-paste("Weight fitting error: ",pair_ret[[1]][["errorWeight"]])
-    HTML(paste(ks2,ks1,ks3,mes1,mes2,mes3,mes4,mes5,mes6, sep = '<br/>'))
+    HTML(paste(ks2,ks1,ks3,mes0,mes1,mes2,mes3,mes4,mes5,mes6, sep = '<br/>'))
   })
   output$fits<-renderPlot({
     grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
   })
   output$ellip<-renderPlot({
-    grid.arrange(pair_ret[[1]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE),pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
+    grid.arrange(pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE),pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
   })
     
     }
@@ -533,8 +534,8 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     init<-init_prot$init
     parInit<-list("start_prot"=init,"ks"=ks_min*3,"kd"=ks_min*0.3)
     parInit2<-list("start_prot"=init,"ks"=ks_min,"kd"=ks_min*0.1)
-    parInit3<-list("start_prot"=init,"ks"=ks_min*5,"kd"=ks_min*5)
-    parInit4<-list("start_prot"=init,"ks"=ks_min*10,"kd"=ks_min*10)
+    parInit3<-list("start_prot"=init,"ks"=ks_min*0.05,"kd"=ks_min*0.5)
+    parInit4<-list("start_prot"=init,"ks"=ks_min*0.01,"kd"=ks_min*0.1)
     
     # parInit<-list("start_prot"=init,"ks"=ksnorm[2]*0.03,"kd"=4.5e-3*3)
     # parInit2<-list("start_prot"=init,"ks"=ksnorm[2]*0.02,"kd"=4.5e-3*20)
@@ -543,40 +544,41 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     # upper = c(Inf,ksnorm[2],24)
     # c(0,ksnorm[1],4.5e-3)
     parMu<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
-    # parMu<-nls.lm(par=parInit,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
-    #print(summary(parMu))
     sol1<-fitted(parMu)
-    # sol1<-resol_mu(coef(parMu),dpa)
-    # test1<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,warnOnly = TRUE,tol=1e-6),algorithm = "port",lower = c(0,0,0))
     parMu2<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
-    # parMu2<-nls.lm(par=parInit2,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
-    #print(confint(parMu2))
     sol2<-fitted(parMu2)
-    # sol2<-resol_mu(coef(parMu2),dpa)
     parMu3<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
-    # parMu3<-nls.lm(par=parInit3,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
-    #print(confint(parMu3))
     sol3<-fitted(parMu3)
-    # sol3<-resol_mu(coef(parMu3),dpa)
     parMu4<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
-    # parMu4<-nls.lm(par=parInit4,fn=funToMin,exp_data=prot_conc,time=dpa,lower=c(0,0,0),control = nls.lm.control(ftol = 1e-6,ptol=1e-6))
-    #print(confint(parMu4))
     sol4<-fitted(parMu4)
-    # sol4<-resol_mu(coef(parMu4),dpa)
     sol<-cbind(sol1,sol2,sol3,sol4)
     parmu<-cbind(coef(parMu),coef(parMu2),coef(parMu3),coef(parMu4))
     resnorm<-c(deviance(parMu),deviance(parMu2),deviance(parMu3),deviance(parMu4))
-    # nois1<-Noisify(sol1,min( sqrt(mean(sol1)/6),0.5))
-    # test1<-nlsLM(nois1~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
+    
     opt_setp<-evalOptim(parmu)
     error<-sqrt(resnorm[1])/norm(prot_conc,"2")
     errg<-sqrt(resnorm)/norm(prot_conc,"2")
     err_mes<-scoreErreur(error)
     err_mes[["errg"]]<-errg
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
+    confEllipse<-confidenceEllipse(parMu,which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
+    if ((max(confEllipse[["0.9"]][,1])-coef(parMu)[["ks"]]<max(coef(parMu)["ks"],0.5)) & (max(confEllipse[["0.9"]][,2])-coef(parMu)[["kd"]]<max(coef(parMu)["kd"],0.5))){
+      validEllipse<-TRUE
+    }
+    else{
+      validEllipse<-FALSE
+    }
+    confEllipse2<-do.call(gdata::combine,confEllipse)
+    if (any(confEllipse2[,c("x","y")]<0)){
+      confEllipsePlot<-ggplot()+geom_polygon(confEllipse2,mapping=aes(x=x,y=y,colour=source,fill=source),alpha=0.3)+theme+coord_cartesian(xlim=(c(0,max(confEllipse2$x))),ylim = (c(0,max(confEllipse2$y))))+ylab("kd")+xlab("Ks")
+    } 
+    else {
+      confEllipsePlot<-ggplot()+geom_polygon(confEllipse2,mapping=aes(x=x,y=y,colour=source,fill=source),alpha=0.3)+theme+ylab("kd")+xlab("Ks")
+      ## check ellipse package 
+    }
     
-    # curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa)
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list))#,"manualEllipse"=curveEllipse))
+    curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa,c(min(confEllipse[["0.9"]][,1]),max(confEllipse[["0.9"]][,1])),c(min(confEllipse[["0.9"]][,2]),max(confEllipse[["0.9"]][,2])))
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"validEllipse"=validEllipse,"confEllipsePlot"=confEllipsePlot,"manualEllipse"=curveEllipse))
   }
   
 }
@@ -750,7 +752,7 @@ eqDifPrinc2<-function(t,s,par){
   return(list(y_res))
 }
 
-confEllipse<-function(model,prot_data,dpa){
+confEllipse<-function(model,prot_data,dpa,gridks,gridkd){
   par<-coef(model)
   nlsfit<-nlm(funtoMin_ssq,p=par,exp_data=prot_data,time=dpa)
   ecartmin<-nlsfit$minimum
@@ -760,37 +762,17 @@ confEllipse<-function(model,prot_data,dpa){
   alpha=c(0.9,0.75,0.5)
   # seuil au risque alpha
   seuil<-ecartmin*(1+p/(n-p)*qf(alpha,df1=p,df2=n-p))
-  kdseq<-seq(from =0.5*par[["kd"]], to =2*par[["kd"]], length=50)
-  ksseq<-seq(from =0.5*par[["ks"]], to =2*par[["ks"]], length=50)
+  kdseq<-seq(from =gridkd[1], to =gridkd[2], length=30)
+  ksseq<-seq(from =gridks[1], to =gridks[2], length=30)
   # grille de valeurs p=(mu,ks)
-  grid_expand<-matrix(nrow = length(ksseq)*length(kdseq),ncol=3)
-  ecartgrid<-matrix(nrow=length(ksseq),ncol=length(kdseq))
+  grid<-expand.grid(ksseq,kdseq)
   cont<-1
   # trac? dans le plan (ks,mu) de valeur p minimisant ecart(p)
-  plot(nlsfit$estimate[2],nlsfit$estimate[3],pch=3,las=1,xlab=expression(paste(mu[m],"[1:h]")),ylab=expression(paste(K[s],"[mg/l] lactose")))
-  for (i in 1:50){
-    for (j in 1:50){
-      #calcul ecart(p de la grille) 
-      ecartgrid[i,j]<-funtoMin_ssq(p=c(par[["start_prot"]],ksseq[i],kdseq[j]),exp_data = prot_data,time = dpa)
-      grid_expand[cont,1]<-ksseq[i]
-      grid_expand[cont,2]<-kdseq[j]
-      grid_expand[cont,3]<-ecartgrid[i,j]
-      cont<-cont+1
-      # ecart(p de la grille)>seuil, on trace le point dans le plan (ks,mu)
-      # if (ecartgrid[i,j]>seuil){
-      #   points(ksseq[i],kdseq[j],pch=3,cex=0.5)
-      # }
-    }
-  }
+  grid_expand<-apply(grid,1, function(x){
+    return(funtoMin_ssq(p=c(par[["start_prot"]],x[["Var1"]],x[["Var2"]]),exp_data = prot_data,time = dpa))
+  })
   
-  grid_expand<-data.frame(grid_expand)
-  colnames(grid_expand)<-c("ks","kd","SSQ")
-  return(ggplot(grid_expand,aes(x = ks,y = kd,z=SSQ))+stat_contour(breaks=seuil,aes(colour=as.factor(..level..)))+theme+scale_color_manual(name="Confidence levels",labels=c("0.9","0.75","0.5"),values=c("red", "blue","darkgreen"))+geom_point(aes(x=par[["ks"]],y=par[["kd"]]),colour="black"))
-  # # utilisation de contour pour couper "proprement" la r?gion au niveau du seuil
-  # lines_cont<-contourLines(ksseq,kdseq,ecartgrid,levels = seuil)
-  # A<-do.call(rbind,lapply(lines_cont,as.data.frame))
-  # contour(ksseq,kdseq,ecartgrid,col=c("red","green","blue"),levels=seuil,drawlabels=FALSE,xlim=c(min(ksseq),max(ksseq)),ylim=c(min(kdseq),max(kdseq)),main="Région de confiance des param?tres")
-  # points(nlsfit$estimate[2],nlsfit$estimate[3],pch=3)
-  # # pour un seuil au risque 2*alpha
-  # legend("bottomright",inset=0.01,legend=c("alpha=5%","alpha=10%"),pch=c(1,19),col=c("red","blue"))
+  grid_expand<-data.frame(ks=grid$Var1,kd=grid$Var2,SSQ=grid_expand)
+  return(ggplot(grid_expand,aes(x = ks,y = kd,z=SSQ))+stat_contour(breaks=seuil,aes(colour=as.factor(..level..)))+theme+scale_color_manual(name="Confidence levels",labels=c("0.5","0.75","0.9"),values=c("blue", "darkgreen","red"))+geom_point(aes(x=par[["ks"]],y=par[["kd"]]),colour="black"))
+
 }

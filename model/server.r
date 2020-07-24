@@ -37,7 +37,6 @@ function(input, output, session) {
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       test_list<<-list_data$parse
-      # test_list<<-sample(test_list,3)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       # test_el<<-sample(test_list,1)[[1]])
@@ -81,16 +80,6 @@ function(input, output, session) {
     print("Finished")
   })
   
-  # parList<-reactiveValues()
-  # observe({
-  #   for (i in reactiveValuesToList(input)){
-  #   print(i)
-  #   if (grepl("par[1-9]+_sig",i,perl = T)){
-  #     newlist[[input[[i]]]]<-input[[i]]
-  #   }
-  # }
-  # # })
-
   observe({
     parList<-callModule(paramList,"params",input$method_we)
     parList<<-parList$parms
@@ -199,22 +188,7 @@ function(input, output, session) {
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks)
           if (!is.null(par_k)){
             par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
-            X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
-            diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
-            par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
             el$SOL<-par_k
-            # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
-            el$confEllipse<-confidenceEllipse(el[["SOL"]][["modelList"]][["model1"]],which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
-            # el$confEllipse<-ellipse::ellipse(el[["SOL"]][["modelList"]][["model1"]],which = c("ks","kd"),level=c(0.9,0.75,0.5),t=deviance(el[["SOL"]][["modelList"]][["model1"]])*(1+2/(length(el$Protein_val)-2)*qf(c(0.9,0.75,0.5),df1=length(el$Protein_val),df2=length(el$Protein_val)-2)))
-            if (any(el$confEllipse[["0.9"]]<0 | el$confEllipse[["0.75"]]<0 | el$confEllipse[["0.5"]]<0)){
-              el$validEllipse<-FALSE
-              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+coord_cartesian(xlim=(c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$x))),ylim = (c(0,max(as.data.frame(el[["confEllipse"]][["0.9"]])$y))))+ylab("kd")+xlab("Ks")
-            } 
-            else {
-              el$validEllipse<-TRUE
-              el$confEllipsePlot<-ggplot()+geom_polygon(as.data.frame(el[["confEllipse"]][["0.9"]]),mapping=aes(x,y),colour="red",alpha=0.3,fill="red")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.75"]]),mapping=aes(x,y),colour="green",alpha=0.3,fill="green")+geom_polygon(as.data.frame(el[["confEllipse"]][["0.5"]]),mapping=aes(x,y),colour="blue",alpha=0.3,fill="blue")+theme+ylab("kd")+xlab("Ks")
-              ## check ellipse package 
-              }
           }
           return(el)
         },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
@@ -278,7 +252,7 @@ function(input, output, session) {
     # if (as.numeric(as.character(input$err_th))<=0){
     #   showNotification("Invalid threshold value",type = "error")
     # }
-    valid_table<<-final_table[which((final_table$`Fitting error value`<as.numeric(as.character(input$err_th))) & (final_table$`Valid confidence ellipse`==TRUE)),]
+    valid_table<<-final_table[which((final_table$`Fitting error value`<as.numeric(as.character(input$err_th))) & (final_table$`Valid confidence ellipse`==TRUE)  & (final_table$`Optimization error score`==10)),]
     output$validTable<-downloadHandler(
       filename = function(){
         paste("validResults_KsKd-",Sys.Date(),".csv",sep="")
