@@ -110,7 +110,7 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
   })
   output$ellip<-renderPlot({
-    grid.arrange(pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE),pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
+    pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)#,pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
   })
     
     }
@@ -562,7 +562,9 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
     err_mes[["errg"]]<-errg
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
     confEllipse<-confidenceEllipse(parMu,which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
-    if ((max(confEllipse[["0.9"]][,1])-coef(parMu)[["ks"]]<max(coef(parMu)["ks"],0.5)) & (max(confEllipse[["0.9"]][,2])-coef(parMu)[["kd"]]<max(coef(parMu)["kd"],0.5))){
+    bound_circle<-confEllipse[["0.9"]]
+    dist2center<-sqrt(rowSums((t(t(bound_circle)-c(coef(parMu)["ks"],coef(parMu)["kd"])))^2))
+    if (any((max(dist2center)<max(coef(parMu)["ks"],0.5)) & (min(dist2center)<max(coef(parMu)["kd"],0.5)),(max(dist2center)<max(coef(parMu)["kd"],0.5)) & (min(dist2center)<max(coef(parMu)["ks"],0.5)))){
       validEllipse<-TRUE
     }
     else{
@@ -577,8 +579,8 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm){
       ## check ellipse package 
     }
     
-    curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa,c(min(confEllipse[["0.9"]][,1]),max(confEllipse[["0.9"]][,1])),c(min(confEllipse[["0.9"]][,2]),max(confEllipse[["0.9"]][,2])))
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"validEllipse"=validEllipse,"confEllipsePlot"=confEllipsePlot,"manualEllipse"=curveEllipse))
+    # curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa,c(min(confEllipse[["0.9"]][,1]),max(confEllipse[["0.9"]][,1])),c(min(confEllipse[["0.9"]][,2]),max(confEllipse[["0.9"]][,2])))
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"validEllipse"=validEllipse,"confEllipsePlot"=confEllipsePlot))#,"manualEllipse"=curveEllipse))
   }
   
 }

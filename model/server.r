@@ -228,7 +228,7 @@ function(input, output, session) {
         res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
         res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
         res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
-        res[["Valid confidence ellipse"]]<-el[["validEllipse"]]
+        res[["Valid confidence ellipse"]]<-el[["SOL"]][["validEllipse"]]
         return(res)
       })
       final_table<<-rbindlist(all_res)
