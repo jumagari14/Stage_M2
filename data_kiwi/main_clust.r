@@ -4,7 +4,8 @@ spec <- matrix(c(
   "workDir", "o", 1, "character",
   "mainFile","f",1, "character",
   "weightFile","w",1, "character",
-  "finalFile","a",1,"character"),
+  "finalFile","a",1,"character",
+  "nCPU","n",1,"numeric"),
   byrow=TRUE, ncol=4)
 opt <- getopt(spec)
 print(opt$workDir)
@@ -27,7 +28,7 @@ ksmin=3*4*3*3.6*24
 score=0
 cont<-0
 dir.create("solK")
-numCores <- detectCores()-1
+numCores <- opt$nCPU
 print(numCores)
 # cl <- makeCluster(detectCores()-1, type='PSOCK')
 # registerDoParallel(numCores)
@@ -42,7 +43,7 @@ res_list<-mclapply(test_list,function(el){
     fitR<<-"3_deg_log"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
     el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
-    par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks)
+    par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
     if (!is.null(par_k)){
       par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
