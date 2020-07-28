@@ -345,18 +345,22 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
   simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
   doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
   g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
+
+  
   if (method=="verhulst"){
     ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit  = verhulst,ub=bounds$ub,lb=bounds$lb)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(ver_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(ver_fit), names(coef(ver_fit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-ver_fit
+    err<-norm(poids-fitted(ver_fit),"2")/norm(poids,"2")
   }
   if (method=="gompertz"){
     gom_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit = gompertz,ub=bounds$ub,lb=bounds$lb)
     g<-g+geom_line(aes(x=unlist(t),y=fitted(gom_fit)))+theme+xlab("DPA")+ylab("Weight (gFW)")
     mu.list <- split(coef(gom_fit), names(coef(gom_fit)))
     final.form<-gom_fit
+    err<-norm(poids-fitted(gom_fit),"2")/norm(poids,"2")
   }
   if (method=="empirique"){
     emp_fit<-linFitting(as.vector(t),as.vector(poids),parlist = list("par1"=5.38,"par2"=8,"par3"=7),formula_fit = empirique,ub=bounds$ub,lb=bounds$lb)
@@ -364,13 +368,7 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
     mu.list <- split(coef(emp_fit), names(coef(emp_fit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-emp_fit
-  }
-  if (method=="contois"){
-    parList<-c(r=5,K=2,R=100)
-    y0<-1
-    dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
-    # cont_fit<-linFitting(as.vector(t),y0,parlist = parList,formula_fit = odeFitting,ub=c(Inf,Inf,130,2),lb=c(0,0,90,0.05))
-    # print(fitted(cont_fit))
+    err<-norm(poids-fitted(emp_fitit),"2")/norm(poids,"2")
   }
   if (method=="double_sig"){
     
@@ -380,28 +378,10 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-db_sigFit
-    # plot(t,poids)
-    # lines(t,fitted(db_sigFit),col=2,lwd=2)
+    err<-norm(poids-fitted(db_sigFit),"2")/norm(poids,"2")
     
   }
-  if (method=="log_poly"){
-    # poly_model<-lm(log(unlist(poids))~poly(unlist(t),3,raw = T))
-    # new_y<-predict.lm(poly_model,data.frame(t))
-    wp3<-polyfit(unlist(t,use.names = F),log(unlist(poids,use.names = F)),3)
-    new_y<-polyval(wp3,unlist(t,use.names = F))
-    new_y<-exp(new_y)
-    g<-g+geom_line(aes(x=unlist(t,use.names = F),y=new_y))+theme+xlab("DPA")+ylab("Weight (gFW)")
-    mu.list <- wp3
-    final.form<-new_y
-  }
-  err<-norm(poids-fitted(final.form),"2")/norm(poids,"2")
   return(list("coefs"=mu.list,"formula"=final.form,"graph"=g,"error"=err))
-  # 
-  #   data_prueba<-select_if(total_data[1:5,],is.numeric)
-  #   t<-t(as.matrix(seq(1,27)))
-  #   y<-as.matrix(data_prueba[2,1:27])
-  #   
-  #   fitting<-nlsLM(formula =formula_fit,start = parlist,data = data.frame("t"=t,"y"=y))
 } 
 
 linFitting<-function(t,y,parlist,formula_fit,ub,lb){
@@ -420,32 +400,29 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
   if (grepl("xls[x]*",data,perl = T)){
     data_trans<-read_xlsx(path = data,sheet = trans_sheet)
     data_prot<-read_xlsx(path = data,sheet =prot_sheet)
-    data_prot[,3:ncol(data_prot)]<-sapply(data_prot[,3:ncol(data_prot)], as.numeric)
-    data_trans[,3:ncol(data_trans)]<-sapply(data_trans[,3:ncol(data_trans)], as.numeric)
-    colnames(data_prot)[1]<-"Protein"
-    colnames(data_trans)[1]<-"Transcrit"
-    colnames(data_prot)<-gsub("\\.\\.\\.[0-9]*","",colnames(data_prot))
-    t<-round(as.numeric(colnames(data_prot)[-which(is.na(as.numeric(as.character(colnames(data_prot)))))]))
-    
-    total_data<-merge(data_trans,data_prot,by=c("Protein","Transcrit"))
-    
-    lista<-vector("list",nrow(data_trans))
-    for (i in seq(1,nrow(total_data))){
-      lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:ncol(data_trans)]),"Protein_val"=as.matrix(total_data[i,(ncol(data_trans)+1):ncol(total_data)]),"DPA"=t)
-      
-    }
-    return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
   }
-  
   else{
-    total_data<-read_delim(file = data,delim=get.delim(data),col_names = F,na=c("","NA","#E/E","NaN"))
-    if (poids) colnames(total_data)<-c("DPA","Poids")
-    else{
-      colnames(total_data)<-total_data[1,]
-      total_data<-total_data[-1,]
-    }
-    return(total_data)
+    data_trans<-read_delim(file = data[1],delim=get.delim(data[1]),col_names = T,na=c("","NA","#E/E","NaN"))
+    data_prot<-read_delim(file = data[2],delim=get.delim(data[2]),col_names = T,na=c("","NA","#E/E","NaN"))
   }
+  data_prot[,3:ncol(data_prot)]<-sapply(data_prot[,3:ncol(data_prot)], as.numeric)
+  data_trans[,3:ncol(data_trans)]<-sapply(data_trans[,3:ncol(data_trans)], as.numeric)
+  colnames(data_prot)[1]<-"Protein"
+  colnames(data_trans)[1]<-"Transcrit"
+  colnames(data_prot)<-gsub("\\.\\.\\.[0-9]*","",colnames(data_prot))
+  t<-round(as.numeric(colnames(data_prot)[-which(is.na(as.numeric(as.character(colnames(data_prot)))))]))
+  
+  total_data<-merge(data_trans,data_prot,by=c("Protein","Transcrit"))
+  
+  lista<-vector("list",nrow(data_trans))
+  for (i in seq(1,nrow(total_data))){
+    lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:ncol(data_trans)]),"Protein_val"=as.matrix(total_data[i,(ncol(data_trans)+1):ncol(total_data)]),"DPA"=t)
+    
+  }
+  return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
+  
+  
+
 }
 contois<-function(time,state,par) {
   r<-par["r"]

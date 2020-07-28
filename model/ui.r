@@ -51,7 +51,7 @@ fluidPage(theme = shinytheme("united"),useShinyjs(),tags$style("#params { displa
                                                         #method_we+ div>.selectize-input{width: 5cm !important;}
                                                                                 '))),
                                   fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
-                                  div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Logistic"="verhulst","Gompertz"="gompertz","Empiric"="empirique","Log polynomial"="log_poly","Double sigmoid"="double_sig"))),
+                                  div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Double sigmoid"="double_sig","Logistic"="verhulst","Gompertz"="gompertz","Empiric"="empirique"))),
                                   div(style="display:inline-block",formula_tabs), ## "Contois"="contois",,"Noyau"="seed",
                                   paramListInput("params"),
                                   div(style="display:inline-block",actionButton("fit_op","Fit")),
@@ -90,7 +90,7 @@ fluidPage(theme = shinytheme("united"),useShinyjs(),tags$style("#params { displa
                               
                      ))),
                      tabPanel("Help", 
-                              includeMarkdown("tutorial.md"),)
+                              includeHTML("tutorial.html"),)
                      
                     )
 )

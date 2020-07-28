@@ -47,31 +47,16 @@ function(input, output, session) {
     if((!is.null(input$prot_file)) & (!is.null(input$mrna_file))){
       protFile<-input$prot_file
       mrnaFile<-input$mrna_file
-      mrna_data<-loadData(mrnaFile$datapath,"","",poids=F)
-      prot_data<-loadData(protFile$datapath,"","",poids=F)
-      colnames(prot_data)[1]<-"Protein"
-      colnames(mrna_data)[1]<-"Transcrit"
-      ind_num_mrna<-which(!is.na(as.numeric(as.character(colnames(mrna_data)))))
-      ind_prot_num<-which(!is.na(as.numeric(as.character(colnames(prot_data)))))
-      mrna_data[,ind_num_mrna]<-as.data.frame(sapply(mrna_data[,ind_num_mrna],as.numeric))
-      prot_data[,ind_prot_num]<-as.data.frame(sapply(prot_data[,ind_prot_num],as.numeric))
-      clean_mrna_data<<-mrna_data[,ind_num_mrna]
-      clean_prot_data<<-prot_data[,ind_prot_num]
-      if (grep("\\.[0-3]",colnames(prot_data),perl = T)){
-          days<-gsub("\\.[0-3]","",colnames(prot_data)[grep("[0-9]+",colnames(prot_data))])
-      }
-      else{
-        days<-gsub("\\.[0-3]","",colnames(mrna_data)[grep("[0-9]+",colnames(mrna_data))])
-      }
-      days_kiwi<<-as.numeric(as.character(days))
-      total_data<-merge(mrna_data,prot_data)
-      lista<-vector("list",nrow(mrna_data))
-      for (i in seq(1,nrow(total_data))){
-        lista[[i]]<-list("Protein_ID"=total_data[i,"Protein"],"Transcrit_ID"=total_data[i,"Transcrit"],"Transcrit_val"=as.matrix(total_data[i,3:29]),"Protein_val"=as.matrix(total_data[i,30:ncol(total_data)]),"DPA"=days_kiwi)
-      }
-      # test_list<<-lista
-      test_list<<-sample(lista,100)
-      test_el<<-sample(test_list,1)[[1]]
+      list_data<-loadData(c(mrnaFile,protFile),"","",poids=F)
+      mrna_data<-list_data$mrna
+      prot_data<-list_data$prot
+      test_list<<-list_data$parse
+      clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
+      clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
+      # test_el<<-sample(test_list,1)[[1]])
+      output$select_pair<-renderUI({
+        selectInput("sel_pair","Select protein",unlist(list.map(test_list,Transcrit_ID)))
+      })
     }
   })    
   observeEvent(input$disp_distr,{
@@ -88,7 +73,7 @@ function(input, output, session) {
     print(parList())
     print(boundList())
     inFile<-input$weight_data
-    poids_data<-loadData(inFile$datapath,"","",poids=T)
+    poids_data<-read_delim(inFile$datapath,delim = get.delim(inFile$datapath),col_names = c("DPA","Poids"),na=c("","NA","#E/E","NaN"))
     print("Fitting...")
     tryCatch({
       coefs_poids<<-fitPoids_v2(poids_data[,1],poids_data[,2],input$method_we,parList(),boundList())

@@ -1,0 +1,207 @@
+
+
+
+<div id="protein-and-mrna-data-import" class="section level3">
+<h3>Protein and mRNA data import</h3>
+<p>Import of protein and mRNA data can be done in 2 separate files or in a single <em>xlsx</em> file. Multiple formats (tab-separated, comma-separated, …) are supported in the use of separate files. <em>xlsx</em> file must include both data tables in different named tabs. User can switch between these 2 import methods by clicking on the <em>Single file</em> checkbox.<br />
+Protein and mRNA data must have their identifiers as row names and a column of mRNA or protein identifiers associated to the corresponding protein and MRNAs, respectively.</p>
+<table>
+<caption>Extract of a mRNA data raw table</caption>
+<colgroup>
+<col width="12%"></col>
+<col width="13%"></col>
+<col width="12%"></col>
+<col width="12%"></col>
+<col width="12%"></col>
+<col width="13%"></col>
+<col width="12%"></col>
+<col width="12%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Protein</th>
+<th align="right">4011</th>
+<th align="right">4012</th>
+<th align="right">4013</th>
+<th align="right">4021</th>
+<th align="right">4022</th>
+<th align="right">4024</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Acc03010.1</td>
+<td align="left">d2736.a1.a1</td>
+<td align="right">3.2022815</td>
+<td align="right">1.1591652</td>
+<td align="right">1.1843542</td>
+<td align="right">1.1508222</td>
+<td align="right">0.3250110</td>
+<td align="right">0.4154741</td>
+</tr>
+<tr class="even">
+<td align="left">Acc02827.1</td>
+<td align="left">a4.a2.a1</td>
+<td align="right">3.1581223</td>
+<td align="right">1.3650338</td>
+<td align="right">1.2647326</td>
+<td align="right">1.5909667</td>
+<td align="right">0.5042287</td>
+<td align="right">0.5661744</td>
+</tr>
+<tr class="odd">
+<td align="left">Acc19832.1</td>
+<td align="left">d2625.a1.a1</td>
+<td align="right">0.4189906</td>
+<td align="right">0.1536597</td>
+<td align="right">0.1478348</td>
+<td align="right">0.3018022</td>
+<td align="right">0.0846573</td>
+<td align="right">0.0894078</td>
+</tr>
+<tr class="even">
+<td align="left">Acc01672.1</td>
+<td align="left">d2543.a1.a1</td>
+<td align="right">1.8952441</td>
+<td align="right">0.8475453</td>
+<td align="right">0.8402764</td>
+<td align="right">0.9551660</td>
+<td align="right">0.2817458</td>
+<td align="right">0.3495813</td>
+</tr>
+<tr class="odd">
+<td align="left">Acc09753.1</td>
+<td align="left">d1010.a1.a1</td>
+<td align="right">90.9493676</td>
+<td align="right">34.0525985</td>
+<td align="right">29.1896413</td>
+<td align="right">120.6182239</td>
+<td align="right">36.0578908</td>
+<td align="right">47.0108045</td>
+</tr>
+<tr class="even">
+<td align="left">Acc09942.1</td>
+<td align="left">d2512.a1.a1</td>
+<td align="right">4.4477304</td>
+<td align="right">1.7771462</td>
+<td align="right">1.7785149</td>
+<td align="right">1.9420661</td>
+<td align="right">0.5292914</td>
+<td align="right">0.6833120</td>
+</tr>
+<tr class="odd">
+<td align="left">Acc11591.1</td>
+<td align="left">d3129.a1.a1</td>
+<td align="right">2.3233023</td>
+<td align="right">1.1490374</td>
+<td align="right">1.1120958</td>
+<td align="right">1.9688249</td>
+<td align="right">0.4968209</td>
+<td align="right">0.6391263</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Extract of a protein data raw table</caption>
+<colgroup>
+<col width="14%"></col>
+<col width="13%"></col>
+<col width="10%"></col>
+<col width="12%"></col>
+<col width="13%"></col>
+<col width="12%"></col>
+<col width="12%"></col>
+<col width="12%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Transcrit</th>
+<th align="right">0</th>
+<th align="right">0.1</th>
+<th align="right">0.2</th>
+<th align="right">13</th>
+<th align="right">13.1</th>
+<th align="right">13.2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">a4.a2.a1</td>
+<td align="left">Acc02827.1</td>
+<td align="right">16788.50</td>
+<td align="right">13406.37</td>
+<td align="right">15551.269</td>
+<td align="right">31870.52</td>
+<td align="right">33741.28</td>
+<td align="right">32889.06</td>
+</tr>
+<tr class="even">
+<td align="left">d2736.a1.a1</td>
+<td align="left">Acc03010.1</td>
+<td align="right">57595.07</td>
+<td align="right">168002.34</td>
+<td align="right">190705.289</td>
+<td align="right">123946.14</td>
+<td align="right">107149.19</td>
+<td align="right">70914.60</td>
+</tr>
+<tr class="odd">
+<td align="left">d2625.a1.a1</td>
+<td align="left">Acc19832.1</td>
+<td align="right">14884.27</td>
+<td align="right">16176.32</td>
+<td align="right">8932.749</td>
+<td align="right">18636.91</td>
+<td align="right">16530.41</td>
+<td align="right">9173.87</td>
+</tr>
+<tr class="even">
+<td align="left">d2543.a1.a1</td>
+<td align="left">Acc01672.1</td>
+<td align="right">54906.67</td>
+<td align="right">45378.44</td>
+<td align="right">45095.985</td>
+<td align="right">46060.64</td>
+<td align="right">48792.22</td>
+<td align="right">45530.70</td>
+</tr>
+<tr class="odd">
+<td align="left">d1010.a1.a1</td>
+<td align="left">Acc09753.1</td>
+<td align="right">75283.96</td>
+<td align="right">62594.43</td>
+<td align="right">64681.280</td>
+<td align="right">132285.46</td>
+<td align="right">130611.75</td>
+<td align="right">127812.55</td>
+</tr>
+<tr class="even">
+<td align="left">d2512.a1.a1</td>
+<td align="left">Acc09942.1</td>
+<td align="right">25563.88</td>
+<td align="right">27235.87</td>
+<td align="right">30727.837</td>
+<td align="right">64053.13</td>
+<td align="right">66218.72</td>
+<td align="right">71461.21</td>
+</tr>
+<tr class="odd">
+<td align="left">d3129.a1.a1</td>
+<td align="left">Acc11591.1</td>
+<td align="right">62174.17</td>
+<td align="right">54056.45</td>
+<td align="right">57064.622</td>
+<td align="right">60186.99</td>
+<td align="right">69675.30</td>
+<td align="right">64628.33</td>
+</tr>
+</tbody>
+</table>
+<p>It is necessary to have the time ### Weight data import and fitting</p>
+</div>
+<div id="calculation-of-ks-and-kd" class="section level3">
+<h3>Calculation of ks and kd</h3>
+</div>
+

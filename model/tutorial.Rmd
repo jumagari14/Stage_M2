@@ -1,0 +1,29 @@
+---
+title: "User's guide"
+output: html_fragment
+---
+### Protein and mRNA data import 
+Import of protein and mRNA data can be done in 2 separate files or in a single *xlsx* file. Multiple formats (tab-separated, comma-separated, ...) are supported in the use of separate files. *xlsx* file must include both data tables in different named tabs. User can switch between these 2 import methods by clicking on the *Single file* checkbox.    
+Protein and mRNA data must have their identifiers as row names and a column of mRNA or protein identifiers associated to the corresponding protein and MRNAs, respectively. 
+
+``` {r include=FALSE}
+library(knitr)
+library(readxl)
+source("global.r")
+data_exp_mrna<-read_xlsx("../data_kiwi/test.xlsx",sheet = "Transcrits")
+data_exp_prot<-read_xlsx("../data_kiwi/test.xlsx",sheet = "Proteines")
+data_exp<-loadData("../data_kiwi/test.xlsx","Transcrits","Proteines",F)
+data_mrna<-data_exp$mrna
+data_prot<-data_exp$prot
+
+```
+``` {r results='asis',echo=FALSE}
+colnames(data_exp_mrna)[1]<-""
+colnames(data_exp_prot)[1]<-""
+kable(data_exp_mrna[,1:8],caption="Extract of a mRNA data raw table")
+kable(data_exp_prot[,1:8],caption = "Extract of a protein data raw table")
+```
+It is necessary to have the developmental stages and their samples as column names in the protein table. Samples of a same time stage can be defined 
+### Weight data import and fitting 
+
+### Calculation of ks and kd 
