@@ -17,7 +17,7 @@ formula_tabs<-tabsetPanel(
            withMathJax("$$y=\\frac{b*c}{b+(b-c)*exp^{-a*t}}$$")
            
   ),
-  tabPanel("log_poly",
+  tabPanel("empirique",
            withMathJax("")
   ),
   

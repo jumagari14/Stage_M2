@@ -368,7 +368,7 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
     mu.list <- split(coef(emp_fit), names(coef(emp_fit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-emp_fit
-    err<-norm(poids-fitted(emp_fitit),"2")/norm(poids,"2")
+    err<-norm(poids-fitted(emp_fit),"2")/norm(poids,"2")
   }
   if (method=="double_sig"){
     
@@ -528,10 +528,10 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm,algo){
       
     }
     else if (algo=="Port"){
-      parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
-      parMu2<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
-      parMu3<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
-      parMu4<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,ksnorm[1],4.5e-3),upper = c(Inf,ksnorm[2],24))
+      parMu<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+      parMu2<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+      parMu3<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit3,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
+      parMu4<-nls(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit4,control=list(minFactor=1e-6,maxiter=1000,tol=1e-6),algorithm = "port",lower = c(0,0,0))
       
     }
     

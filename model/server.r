@@ -110,11 +110,11 @@ function(input, output, session) {
     rm("parList","boundList","g_mu","g_rel_mu","coefs_poids",envir = .GlobalEnv)
   })
   observeEvent(input$testMRNA,{
-    callModule(mrnaTest,"select_pair")
-    
+    test_el<-Filter(function(x) x[["Transcrit_ID"]]==input$sel_pair,test_list)
+    test_el<-test_el[[1]]
     fitR<-input$testFit_mrna
     norm_data<-normaMean(test_el$Protein_val,test_el$Transcrit_val,10)
-    test_fitmrna<<-fit_testRNA(test_el$DPA,norm_data$mrna,fitR)
+    test_fitmrna<-fit_testRNA(test_el$DPA,norm_data$mrna,fitR)
     output$testmrnaplot<-renderPlot({plotFitmRNA(test_el$DPA,norm_data$mrna,solmRNA(test_el$DPA,test_fitmrna$coefs,fitR))})
     output$errMrna<-renderText({
       mes1<-paste("Chosen pair: ",test_el[["Transcrit_ID"]],sep = "")
@@ -231,8 +231,11 @@ function(input, output, session) {
     }
   })
   
-  observe({
-    
+  observeEvent(input$err_th,{
+    validate(
+      need(0<as.numeric(as.character(input$err_th)),"Check threshold value"),
+      need(as.numeric(as.character(input$err_th))<1,"Check threshold value")
+    )
     req(exists("final_table"))
     # if (as.numeric(as.character(input$err_th))<=0){
     #   showNotification("Invalid threshold value",type = "error")
@@ -258,4 +261,5 @@ function(input, output, session) {
   onStop(function() {
     rm(list=ls())
   })
+
 }
