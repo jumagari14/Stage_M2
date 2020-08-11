@@ -13,7 +13,7 @@ setwd(opt$workDir)
 source("../model/global.r")
 
 # test_data<-lista[[30]]
-pdf(NULL)
+pdf(paste0("Graphs",Sys.Date(),".pdf",sep=""))
 poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
 test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
@@ -23,7 +23,11 @@ coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
 val_mu<-mu(c(poids_kiwi$DPA),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
-plot(poids_kiwi$DPA,val_mu,"l")
+data_mu<-data.frame("DPA"=c(poids_kiwi$t),"Mu"=val_mu)
+g_mu<-ggplot(data_mu,aes(x=DPA,y=Mu))+geom_line()+theme+xlab("DPA")+ylab(bquote("Growth rate "~(days^-1)))
+data_rel_mu<-data.frame("DPA"=c(poids_kiwi$t),"RGR"=val_mu/fitted(coef_poids[["formula"]]))
+g_rel_mu<-ggplot(data_rel_mu,aes(x=DPA,y=RGR))+geom_line()+theme+xlab("DPA")+ylab(bquote("Relative growth rate "~(days^-1)))
+ggarrange(g_mu,g_rel_mu,ncol = 2)
 ksmin=3*4*3*3.6*24
 score=0
 cont<-0
@@ -43,9 +47,12 @@ res_list<-mclapply(test_list,function(el){
     fitR<<-"3_deg_log"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
     el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
+    el[["prot_mrna"]]
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
+    par_k[["confEllipsePlot"]]
     if (!is.null(par_k)){
       par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
+      par_k[["plot_fit_prot"]]
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
       diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)

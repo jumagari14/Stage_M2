@@ -1,4 +1,4 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car","ellipse","nls2","nlstools")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car","ellipse","nls2","nlstools","egg")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 lapply(list.of.packages,require,character.only=TRUE)
@@ -323,7 +323,7 @@ fitPoids<-function(t,poids,method){
     mu.list <- wp3
   }
   err<-norm(poids-fitted(final.form),"2")/norm(poids,"2")
-  return(list("coefs"=mu.list,"formula"=final.form,"error"=err))
+  return(list("coefs"=mu.list,"formula"=final.form,"error"=err,"graph"=g))
   # 
   #   data_prueba<-select_if(total_data[1:5,],is.numeric)
   #   t<-t(as.matrix(seq(1,27)))

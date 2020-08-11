@@ -175,6 +175,7 @@ function(input, output, session) {
             par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
             el$SOL<-par_k
           }
+          showNotification(paste("Analysis ended"))
           return(el)
         },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
       },cl=num_cor)
