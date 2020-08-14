@@ -115,7 +115,7 @@ function(input, output, session) {
     fitR<-input$testFit_mrna
     norm_data<-normaMean(test_el$Protein_val,test_el$Transcrit_val,10)
     test_fitmrna<-fit_testRNA(test_el$DPA,norm_data$mrna,fitR)
-    output$testmrnaplot<-renderPlot({plotFitmRNA(test_el$DPA,norm_data$mrna,solmRNA(test_el$DPA,test_fitmrna$coefs,fitR))})
+    output$testmrnaplot<-renderPlot({plotFitmRNA(test_el$DPA,norm_data$mrna,solmRNA(test_el$DPA,test_fitmrna$coefs,fitR),"")})
     output$errMrna<-renderText({
       mes1<-paste("Chosen pair: ",test_el[["Transcrit_ID"]],sep = "")
       mes2<-paste("Error value: ",test_fitmrna$error,sep = "")
@@ -168,11 +168,11 @@ function(input, output, session) {
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
           fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
           el$errorMrna<-fittedmrna$error
-          el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
+          el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR),"")
           el$errorWeight<-coefs_poids$error
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
           if (!is.null(par_k)){
-            par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
+            par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
             el$SOL<-par_k
           }
           showNotification(paste("Analysis ended"))

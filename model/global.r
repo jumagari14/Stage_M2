@@ -722,17 +722,17 @@ resolNewEq<-function(parlist,time){
   data_out<-ode(y=c(parlist[["start_prot"]]),time,func=eqDifPrinc2,parms = parlist,method = "ode45")
   return(data_out[,-1])
 }
-plotFitmRNA<-function(dpa,exp_data,fit_data){
+plotFitmRNA<-function(dpa,exp_data,fit_data,title){
   
   merg_data<-as.data.frame(cbind(dpa,as.vector(exp_data),fit_data))
-  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=V2))+theme+xlab("Time (DPA)")+ylab("mRNA concentration normalized by mean (fmol gFW)")+geom_line(aes(y=fit_data))
+  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=V2))+theme+xlab("Time (DPA)")+ylab("mRNA concentration normalized by mean (fmol gFW)")+geom_line(aes(y=fit_data))+ggtitle(title)
   return(g)
 }
-plotFitProt<-function(dpa,exp_data,fit_data){
+plotFitProt<-function(dpa,exp_data,fit_data,title){
   merg_data<-as.data.frame(cbind(dpa,exp_data,fit_data))
   melt_data<-melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
   
-  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))
+  g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))+ggtitle(title)
   return(g)
 }
 eqDifPrinc2<-function(t,s,par){

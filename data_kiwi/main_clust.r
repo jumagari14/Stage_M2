@@ -39,24 +39,19 @@ print(numCores)
 res_list<-mclapply(test_list,function(el){
   tryCatch({
   cont<-cont+1
-  print(el[["Transcrit_ID"]])
   res<-list()
   el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
   bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fitR<<-"3_deg_log"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
-    el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR))
-    el[["prot_mrna"]]
+    el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR),el[["Transcrit_ID"]])
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
-    par_k[["confEllipsePlot"]]
     if (!is.null(par_k)){
-      par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit)
-      par_k[["plot_fit_prot"]]
+      par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,el[["Transcrit_ID"]])
       X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
       diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
       par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
-      # para_min<-fminunc(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot))
       el$SOL<-par_k
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
@@ -74,19 +69,23 @@ res_list<-mclapply(test_list,function(el){
       res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
       res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
       res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
-      # if (any(para_min$par<0)){
-      #   init_prot<-init_conc(el$DPA,as.vector(norm_data$prot))
-      #   para_min<-fmincon(par_k[["solK"]][,1],fn=minSquares,time=el$DPA,exp_data=as.vector(norm_data$prot),lb=c(init_prot$min,0,0),ub=c(init_prot$max,Inf,Inf))
-      # }
-      # print(res)
-    #   write.csv(el[["SOL"]][["solK"]],paste(el[["Transcrit_ID"]],"_Sol_ks_kd.csv",sep = ""))
     }
-  res
+    return(list("Table results"=res,"Data"=el))
+
   },error=function(e){cat("ERROR :",conditionMessage(e)," for ",el[["Transcrit_ID"]], "\n")})
 },mc.cores = numCores,mc.preschedule=TRUE)
-valid_res<-Filter(function(x) {length(x) > 1}, res_list)
+
+all_data<-do.call("list",lapply(res_list,function(x) x[["Data"]]))
+res_list<-do.call("list",lapply(res_list,function(x) x[["Table results"]]))
+valid_res<-Filter(function(x) {length(x) > 0}, res_list)
 del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)
+
+for (el in all_data){
+  print(el[["plot_mrna"]])
+  print(el[["SOL"]][["plot_fit_prot"]])
+  print(el[["SOL"]][["confEllipsePlot"]])
+}
 dev.off()
 write.csv(final_table,opt$finalFile)
 
