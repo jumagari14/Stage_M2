@@ -7,8 +7,6 @@ poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))
 test_data<-loadData(data = "test.xlsx",trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 days_kiwi<-test_list[[1]][["DPA"]]
-# test_list<-Filter(function(x) x[["Transcrit_ID"]] %in% names,test_list)
-# test_list<-test_list[-1]
 fitWe<<-"double_sig"
 coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
 coef_poids[["graph"]]

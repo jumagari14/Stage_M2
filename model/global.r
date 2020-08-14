@@ -551,8 +551,10 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm,algo){
     model_list<-list("model1"=parMu,"model2"=parMu2,"model3"=parMu3,"model4"=parMu4)
     confEllipse<-confidenceEllipse(parMu,which.coef = c("ks","kd"),fill = T,segments = 50,levels=c(0.9,0.75,0.5))
     bound_circle<-confEllipse[["0.9"]]
-    dist2center<-sqrt(rowSums((t(t(bound_circle)-c(coef(parMu)["ks"],coef(parMu)["kd"])))^2))
-    if (any((max(dist2center)<max(coef(parMu)["ks"],0.5)) & (min(dist2center)<max(coef(parMu)["kd"],0.5)),(max(dist2center)<max(coef(parMu)["kd"],0.5)) & (min(dist2center)<max(coef(parMu)["ks"],0.5)))){
+    dist_center_axis<-t(t(bound_circle)-c(coef(parMu)["ks"],coef(parMu)["kd"]))
+    dist2center<-sqrt(rowSums(dist_center_axis^2))
+    max_dis<-abs(dist_center_axis[which(dist2center==max(dist2center)),])
+    if ((max_dis[1]<max(coef(parMu)[["ks"]],0.5)) & (max_dis[2]<max(coef(parMu)[["kd"]],0.5))){
       validEllipse<-TRUE
     }
     else{

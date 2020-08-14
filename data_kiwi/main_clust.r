@@ -22,8 +22,8 @@ fitWe<<-"double_sig"
 coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
-val_mu<-mu(c(poids_kiwi$DPA),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
-data_mu<-data.frame("DPA"=c(poids_kiwi$t),"Mu"=val_mu)
+val_mu<-mu(c(poids_kiwi[,1]),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
+data_mu<-data.frame("DPA"=c(poids_kiwi[,1]),"Mu"=val_mu)
 g_mu<-ggplot(data_mu,aes(x=DPA,y=Mu))+geom_line()+theme+xlab("DPA")+ylab(bquote("Growth rate "~(days^-1)))
 data_rel_mu<-data.frame("DPA"=c(poids_kiwi$t),"RGR"=val_mu/fitted(coef_poids[["formula"]]))
 g_rel_mu<-ggplot(data_rel_mu,aes(x=DPA,y=RGR))+geom_line()+theme+xlab("DPA")+ylab(bquote("Relative growth rate "~(days^-1)))
