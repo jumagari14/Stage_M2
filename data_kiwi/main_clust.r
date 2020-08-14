@@ -14,16 +14,15 @@ source("../model/global.r")
 
 # test_data<-lista[[30]]
 pdf(paste0("Graphs",Sys.Date(),".pdf",sep=""))
-poids_kiwi<-read_xlsx(opt$weightFile,sheet = "Kiwifruit")
-test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 days_kiwi<-test_list[[1]][["DPA"]]
 fitWe<<-"double_sig"
-coef_poids<-fitPoids(poids_kiwi[,1],poids_kiwi[,2],fitWe)
+coef_poids<-fitPoids(poids_kiwi$t,poids_kiwi[,2],fitWe)
 poids_coef<<-coef_poids$coefs
 formula_poids<<-coef_poids$formula
-val_mu<-mu(c(poids_kiwi[,1]),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
-data_mu<-data.frame("DPA"=c(poids_kiwi[,1]),"Mu"=val_mu)
+val_mu<-mu(c(poids_kiwi$t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)
+data_mu<-data.frame("DPA"=c(poids_kiwi$t),"Mu"=val_mu)
 g_mu<-ggplot(data_mu,aes(x=DPA,y=Mu))+geom_line()+theme+xlab("DPA")+ylab(bquote("Growth rate "~(days^-1)))
 data_rel_mu<-data.frame("DPA"=c(poids_kiwi$t),"RGR"=val_mu/fitted(coef_poids[["formula"]]))
 g_rel_mu<-ggplot(data_rel_mu,aes(x=DPA,y=RGR))+geom_line()+theme+xlab("DPA")+ylab(bquote("Relative growth rate "~(days^-1)))
