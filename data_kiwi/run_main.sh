@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -mmem-per-cpu=5000
+#SBATCH --mem-per-cpu=5000
 #SBATCH -c 20
 #SBATCH -t 96:00:00
 #SBATCH -J Turnover_model

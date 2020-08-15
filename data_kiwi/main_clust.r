@@ -13,8 +13,8 @@ setwd(opt$workDir)
 source("../model/global.r")
 
 # test_data<-lista[[30]]
-pdf(paste0("Graphs",Sys.Date(),".pdf",sep=""))
-poids_kiwi<-read_csv("poids_kiwi.csv",col_names=c("t","y"))test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+poids_kiwi<-read_csv(opt$weightFile,col_names=c("t","y"))
+test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
 test_list<-test_data$parse
 days_kiwi<-test_list[[1]][["DPA"]]
 fitWe<<-"double_sig"
@@ -37,10 +37,10 @@ print(numCores)
 # registerDoParallel(numCores)
 res_list<-mclapply(test_list,function(el){
   tryCatch({
-  cont<-cont+1
-  res<-list()
-  el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
-  bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
+    cont<-cont+1
+    res<-list()
+    el[["Protein_val"]]<-na.omit(el[["Protein_val"]])
+    bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
     norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
     fitR<<-"3_deg_log"
     fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
@@ -48,9 +48,6 @@ res_list<-mclapply(test_list,function(el){
     par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
     if (!is.null(par_k)){
       par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,el[["Transcrit_ID"]])
-      X<-matrice_sens(el$DPA,par_k[["solK"]][,1])
-      diff<-(par_k[["error"]][["errg"]][1]*norm(as.vector(norm_data$prot),"2"))^2
-      par_k[["corr_matrix"]]<-matrice_corr(X,length(norm_data$prot),diff)
       el$SOL<-par_k
       res[["TranscritID"]]<-el[["Transcrit_ID"]]
       res[["Weight formula"]]<-"Double sigmoid"
@@ -68,9 +65,10 @@ res_list<-mclapply(test_list,function(el){
       res[["Fitting error message"]]<-el[["SOL"]][["error"]][["message"]]
       res[["Optimization error score"]]<-el[["SOL"]][["opt_eval"]][["score"]]
       res[["Optimization error message"]]<-el[["SOL"]][["opt_eval"]][["message"]]
+      res[["Valid confidence ellipse"]]<-el[["SOL"]][["validEllipse"]]
     }
     return(list("Table results"=res,"Data"=el))
-
+    
   },error=function(e){cat("ERROR :",conditionMessage(e)," for ",el[["Transcrit_ID"]], "\n")})
 },mc.cores = numCores,mc.preschedule=TRUE)
 
@@ -85,7 +83,6 @@ for (el in all_data){
   print(el[["SOL"]][["plot_fit_prot"]])
   print(el[["SOL"]][["confEllipsePlot"]])
 }
-dev.off()
 write.csv(final_table,opt$finalFile)
 
 # save(test_list,valid_res,del_results,file=path.expand("./resultsv1.RData"))

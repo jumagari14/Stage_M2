@@ -112,8 +112,8 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
   output$ellip<-renderPlot({
     pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)#,pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
   })
-    
-    }
+  
+}
 paramListInput<-function(id){
   ns<-NS(id)
   tagList(uiOutput(ns("listpar")))
@@ -131,7 +131,7 @@ paramList<-function(input,output,session,method){
                            tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
-      })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -164,7 +164,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = -200, max = 200,value = c(0,200)))))
-  })
+    })
   }
   if (method=="empirique"){
     output$listpar<-renderUI({
@@ -178,7 +178,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
-  })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -203,7 +203,7 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
-  })
+    })
     x<-reactiveValuesToList(input)
     if (!is.null(x$par4_sig)){
       x$par4_sig<-NULL
@@ -248,7 +248,7 @@ paramList<-function(input,output,session,method){
     }
     names(newlist)<-gsub("_sig","",names(newlist))
     parList<-newlist[order(names(newlist))]
-  newlist
+    newlist
   })
   boundList<-reactive({
     if (!exists("x")) x<-reactiveValuesToList(input)
@@ -345,7 +345,7 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
   simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
   doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
   g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
-
+  
   
   if (method=="verhulst"){
     ver_fit<-linFitting(as.vector(t),as.vector(poids),parlist = listpar,formula_fit  = verhulst,ub=bounds$ub,lb=bounds$lb)
@@ -422,7 +422,7 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
   return(list("prot"=data_prot,"mrna"=data_trans,"parse"=lista))
   
   
-
+  
 }
 contois<-function(time,state,par) {
   r<-par["r"]
@@ -575,10 +575,6 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm,algo){
   
 }
 
-funtoMin_ssq<-function(p,exp_data,time){
-  names(p)<-c("start_prot","ks","kd")
-  return(sum((exp_data-ode(y=p[["start_prot"]],times = time,func = eqDifPrinc,parms = c(ks=p[["ks"]],kd=p[["kd"]]),method = "ode45")[,2])^2))
-}
 evalOptim<-function(parmu){
   parmu1<-as.vector(parmu[,1])
   parmu2<-as.vector(parmu[,2])
@@ -678,52 +674,7 @@ eqDifPrinc<-function(time,state,par){
   
   return(list(val))
 }
-eqDifPrinc_v2<-function(t,y,parlist){
-  ks<-parlist[["ks"]]
-  kd<-parlist[["kd"]]
-  val<-unlist(ks)*solmRNA(t,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*y
-  
-  val
-}
-matrice_sens<-function(t,parlist){
-  parList<-list("y1"=parlist[["start_prot"]],"y2"=1,"y3"=0,"y4"=0)
-  t<-unique(t)
-  data_out<-ode(y=c(y=unlist(parList)),t,func = derive,parms = parlist,method = "ode45")
-  return(as.matrix(data_out[,-c(1,2)]))
-}
-derive<-function(t,s,par){
-  ks<-par[["ks"]]
-  kd<-par[["kd"]]
 
-  
-  ds1st<-ks*solmRNA(t,fittedmrna$coefs,fitR)-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y1"]]
-  ds2st<--(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y2"]]
-  ds3st<-solmRNA(t,fittedmrna$coefs,fitR)-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y3"]]
-  ds4st<-s[["y.y1"]]-(kd+mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL))*s[["y.y4"]]
-  return(list(c(ds1st,ds2st,ds3st,ds4st)))
-  
-  
-}
-matrice_corr<-function(X,nel,diff){
-  U<-t(X) %*% X
-  cov<-diff/(nel-3)*inv(U)
-  rho<-matrix(zeros(ncol(U)),nrow = nrow(U))
-  for (i in (seq(1,nrow(U)))){
-    for (j in (seq(1,ncol(U)))){
-      rho[i,j]<-cov[i,j]/sqrt(cov[i,i]*cov[j,j])
-    }
-  }
-  return(rho)
-}
-minSquares<-function(parlist,time,exp_data){
-  res<-resolNewEq(parlist,time)
-  ret_res<-norm(res-exp_data,"2")^2
-  return(ret_res)
-}
-resolNewEq<-function(parlist,time){
-  data_out<-ode(y=c(parlist[["start_prot"]]),time,func=eqDifPrinc2,parms = parlist,method = "ode45")
-  return(data_out[,-1])
-}
 plotFitmRNA<-function(dpa,exp_data,fit_data,title){
   
   merg_data<-as.data.frame(cbind(dpa,as.vector(exp_data),fit_data))
@@ -736,35 +687,4 @@ plotFitProt<-function(dpa,exp_data,fit_data,title){
   
   g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))+ggtitle(title)
   return(g)
-}
-eqDifPrinc2<-function(t,s,par){
-  ks<-par[["ks"]]
-  K<-par[["kd"]]/ks
-  y_res<-ks*(solmRNA(t,fittedmrna$coefs,fitR)-K*s)-mu(dpa=c(t),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)*s
-  return(list(y_res))
-}
-
-confEllipse<-function(model,prot_data,dpa,gridks,gridkd){
-  par<-coef(model)
-  nlsfit<-nlm(funtoMin_ssq,p=par,exp_data=prot_data,time=dpa)
-  ecartmin<-nlsfit$minimum
-  n<-length(prot_data)
-  p<-2
-  #risque pour la r?gion de confiance des param?tres
-  alpha=c(0.9,0.75,0.5)
-  # seuil au risque alpha
-  seuil<-ecartmin*(1+p/(n-p)*qf(alpha,df1=p,df2=n-p))
-  kdseq<-seq(from =gridkd[1], to =gridkd[2], length=30)
-  ksseq<-seq(from =gridks[1], to =gridks[2], length=30)
-  # grille de valeurs p=(mu,ks)
-  grid<-expand.grid(ksseq,kdseq)
-  cont<-1
-  # trac? dans le plan (ks,mu) de valeur p minimisant ecart(p)
-  grid_expand<-apply(grid,1, function(x){
-    return(funtoMin_ssq(p=c(par[["start_prot"]],x[["Var1"]],x[["Var2"]]),exp_data = prot_data,time = dpa))
-  })
-  
-  grid_expand<-data.frame(ks=grid$Var1,kd=grid$Var2,SSQ=grid_expand)
-  return(ggplot(grid_expand,aes(x = ks,y = kd,z=SSQ))+stat_contour(breaks=seuil,aes(colour=as.factor(..level..)))+theme+scale_color_manual(name="Confidence levels",labels=c("0.5","0.75","0.9"),values=c("blue", "darkgreen","red"))+geom_point(aes(x=par[["ks"]],y=par[["kd"]]),colour="black"))
-
 }
