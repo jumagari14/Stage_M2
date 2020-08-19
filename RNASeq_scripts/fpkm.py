@@ -16,14 +16,10 @@ def getTPM(filepath, filename,folder,count_file):
         count_data.loc[count_data["tracking_id"]==data.iloc[i]["tracking_id"],"Length"]=longueur
         count_data.loc[count_data["tracking_id"]==data.iloc[i]["tracking_id"],"Norm"]=count_data.loc[count_data["tracking_id"]==data.iloc[i]["tracking_id"],"count"]/longueur
     sum_norm=count_data.sum()["Norm"]
-    # TPM=[]
-    # tpm=list(count_data.apply(lambda line: (line["Norm"]/sum_norm)*10**6,axis=1))
-    # TPM.extend(tpm)
     TPM=[]
     for i in range(count_data.shape[0]): 
         tpm=(count_data.iloc[i]["Norm"]/sum_norm)*10**6
         TPM.append(tpm)
-
     TPM_data=pd.DataFrame(data={"tracking_id": count_data["tracking_id"], "TPM": TPM})
     TPM_data.drop(TPM_data.tail(5).index,inplace=True)
     header=filename.split(".")[0]
@@ -53,8 +49,6 @@ if os.path.isdir(new_direc)==False:
     os.makedirs(new_direc)
 for root,dirs,files in os.walk(dirpath): 
     for direc in dirs: 
-        # print(direc)
-        # direc=direc.replace("fpkm","/tpm/")
         if os.path.isdir(new_direc+direc)==False: 
             os.makedirs(new_direc+"/"+direc)
     if (root[len(dirpath):].count(os.sep)<3 and root[len(dirpath):]!=""):
