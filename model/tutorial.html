@@ -199,9 +199,32 @@ Protein and mRNA data must have their identifiers as row names and a column of m
 </tr>
 </tbody>
 </table>
-<p>It is necessary to have the time ### Weight data import and fitting</p>
+<p>It is necessary to have the developmental stages and their samples as column names in the protein table. Samples of a same time stage can be defined by adding a.extension. The modelwill remove those extensions to get an array of developmental stages, in days post-anthesis (DPA), where a value is repeated if more than one sample is found at the corresponding stage. mRNA-protein pairs are built by doing a junction of protein and mRNA identiers from both datatables. Furthermore, by clicking on theShow distributionbutton the distribution of mRNA and protein data is displayed at each stage and at all stages.</p>
+</div>
+<div id="weight-data-import-and-fitting" class="section level3">
+<h3>Weight data import and fitting</h3>
+<p>Import of weight data supports several formats, such as <em>csv</em> and <em>tsv</em>. Weight data file must have 2 columns, where weight values (in grame per fresh weight, gFW) and their time values (in DPA) associated are found. Non-linear fitting of weight data is done using the <em>Levendberg-Marquard</em> algorithm. In our model,4 different formulas are provided to perform the fitting:</p>
+<ul>
+<li>Double sigmoid</li>
+<li>Logistic</li>
+<li>Gompertz</li>
+<li>Empiric</li>
+</ul>
+<p>Any of these 4 equations can be selected in the dropdown menu, but <em>Double sigmoid</em> is set as default as it is the most adecquate one for most of the weight data distributions (add reference). User has the choice to enter the values of each parameter of the equation selected. Default values are given initially in the interface, based on previous fitting curves. Moreover, on the <em>Boundaries</em> tab, user can set boundaries to every parameters of the formulas. Default boundaries are 0-Inf, but these can be modified with the sliders available. Maximal upper bound was set to 200, since weight values would always lie between smaller values and coefficients for the fitted curve should always be less than 200. By clicking on the <em>Fit</em> button, fitting is done with the parameters set at the time. 3 graphs, fitted curve, speed of rate and relative growth rate, are obtained on the left. These graphs can be erased by clicking on <em>Clear graphs</em>.</p>
 </div>
 <div id="calculation-of-ks-and-kd" class="section level3">
 <h3>Calculation of ks and kd</h3>
+<p>Before running the calculation, a value to set the initial parameters for the non-linear fitting to get ks and kd values (<em>ksmin</em>) must be set. Default value of it is 3110.4, which is based on ribosomal protein translation rates. Apart from that, formula for the mRNA fitting must be selected. 3 options are available:</p>
+<ul>
+<li>3rd degree polynomial</li>
+<li>6th degree polynomial</li>
+<li>3rd degree logarithmic polynomial</li>
+</ul>
+<p>On the <em>test mRNA fitting</em> tab, mRNA fitting can be tested with any mRNA imported before and all the 3 formulas available. A graph of fitted mRNA curve and its fitting error value are displayed.</p>
+</div>
+<div id="results" class="section level3">
+<h3>Results</h3>
+<p>Results of non-linear fitting are displayed in this tab. Several values for a protein are shown on the left, such as ks, kd normalized ks, protein and mRNA fitting errors and optimization score. Additionally, fitted mRNA and protein curves and confidence ellipses of 50%, 75% and 90% are dsplayed below the scores. Users can select any protein with calculated ks and kd in the dropdown menu to have irs results on the screen;</p>
+<p>Moreover, 2 download buttons are available in order to get all the results in a <em>csv</em> format. Users can download all the results by clicking on <em>Download data table</em> and they can also download valid results using <em>Download valid table</em> button. Valid results are obtained by selecting those who have an optimization score equal to 10, a valid 90% confidence ellipse and protein fitting errors below a value. This threshold value can be set on the interface and its default value is O.3.</p>
 </div>
 

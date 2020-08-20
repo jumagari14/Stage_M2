@@ -37,6 +37,7 @@ function(input, output, session) {
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       test_list<<-list_data$parse
+      # test_list<<-sample(test_list,30)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       # test_el<<-sample(test_list,1)[[1]])
@@ -67,16 +68,20 @@ function(input, output, session) {
   
   observe({
     parList<-callModule(paramList,"params",input$method_we)
-    parList<<-parList$parms
-    boundList<<-parList$bounds})
+    # parList<<-parList$parms
+    # boundList<<-parList$bounds
+    })
   observeEvent(input$fit_op,{
-    print(parList())
-    print(boundList())
+    uiParams<-getParams(input,input$method_we)
+    parList<-uiParams$para
+    boundList<-uiParams$bounds
+    print(parList)
+    print(boundList)
     inFile<-input$weight_data
     poids_data<-read_delim(inFile$datapath,delim = get.delim(inFile$datapath),col_names = c("DPA","Poids"),na=c("","NA","#E/E","NaN"))
     print("Fitting...")
     tryCatch({
-      coefs_poids<<-fitPoids_v2(poids_data[,1],poids_data[,2],input$method_we,parList(),boundList())
+      coefs_poids<<-fitPoids_v2(poids_data[,1],poids_data[,2],input$method_we,parList,boundList)
     },
     warning = function(warn){
       showNotification(paste0(warn), type = 'warning')
@@ -139,7 +144,7 @@ function(input, output, session) {
       fitR<<-input$fit_mrna
       fitWe<<-input$method_we
       cl1 <- makeCluster(detectCores() - 1)
-      # registerDoParallel(cl1)
+      registerDoParallel(cl1)
       mess<-showNotification(paste("Running..."),duration = NULL,type = "message")
       clusterEvalQ(cl1, {
         ## set up each worker.  Could also use clusterExport()
@@ -157,7 +162,7 @@ function(input, output, session) {
       if(Sys.info()["sysname"]=="Windows"){
         num_cor<-cl1
       }
-      else if(Sys.info()["sysname"]=="Linux"){
+      if(Sys.info()["sysname"]=="Linux"){
         num_cor<-detectCores()-1
       }
      # res_list<-for (el in test_list){
@@ -171,11 +176,8 @@ function(input, output, session) {
           el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR),"")
           el$errorWeight<-coefs_poids$error
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
-          if (!is.null(par_k)){
-            par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
-            el$SOL<-par_k
-          }
-          showNotification(paste("Analysis ended"))
+          par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
+          el$SOL<-par_k
           return(el)
         },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
       },cl=num_cor)

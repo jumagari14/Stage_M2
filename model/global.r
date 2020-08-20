@@ -132,18 +132,6 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
     })
-    x<-reactiveValuesToList(input)
-    if (!is.null(x$par4_sig)){
-      x$par4_sig<-NULL
-      x$par5_sig<-NULL
-      x$par6_sig<-NULL
-      x$par7_sig<-NULL
-      x$bound_d<-NULL
-      x$bound_e<-NULL
-      x$bound_f<-NULL
-      x$bound_g<-NULL
-    }
-    
   }
   if (method=="double_sig"){
     output$listpar<-renderUI({
@@ -179,17 +167,6 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
     })
-    x<-reactiveValuesToList(input)
-    if (!is.null(x$par4_sig)){
-      x$par4_sig<-NULL
-      x$par5_sig<-NULL
-      x$par6_sig<-NULL
-      x$par7_sig<-NULL
-      x$bound_d<-NULL
-      x$bound_e<-NULL
-      x$bound_f<-NULL
-      x$bound_g<-NULL
-    }
   }
   if (method=="gompertz"){
     output$listpar<-renderUI({
@@ -204,68 +181,84 @@ paramList<-function(input,output,session,method){
                                    sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
       
     })
-    x<-reactiveValuesToList(input)
-    if (!is.null(x$par4_sig)){
-      x$par4_sig<-NULL
-      x$par5_sig<-NULL
-      x$par6_sig<-NULL
-      x$par7_sig<-NULL
-      x$bound_d<-NULL
-      x$bound_e<-NULL
-      x$bound_f<-NULL
-      x$bound_g<-NULL
-    }
   }
   if (method=="log_poly"){
     output$listpar<-renderUI({
       tagList()})
-    x<-reactiveValuesToList(input)
-    if (!is.null(x$par1_sig)){
-      x$par1_sig<-NULL
-      x$par2_sig<-NULL
-      x$par3_sig<-NULL
-      x$par4_sig<-NULL
-      x$par5_sig<-NULL
-      x$par6_sig<-NULL
-      x$par7_sig<-NULL
-      x$bound_a<-NULL
-      x$bound_b<-NULL
-      x$bound_c<-NULL
-      x$bound_d<-NULL
-      x$bound_e<-NULL
-      x$bound_f<-NULL
-      x$bound_g<-NULL
-    }
   }
   
-  parList<-reactive({
-    if (!exists("x")) x<-reactiveValuesToList(input)
-    x_ind<-grep("par[1-9]+",names(x),perl = T)
-    newlist<-vector("list",length(x_ind))
-    names(newlist)<-names(x[x_ind])
-    for (el in names(newlist)){
-      newlist[[el]]<-as.numeric(as.character(input[[el]]))
-    }
-    names(newlist)<-gsub("_sig","",names(newlist))
-    parList<-newlist[order(names(newlist))]
-    newlist
-  })
-  boundList<-reactive({
-    if (!exists("x")) x<-reactiveValuesToList(input)
-    x_ind<-grep("bound_[a-z]+",names(x),perl = T)
-    bounds<-list()
-    bounds[["ub"]]<-vector("double",length = length(x_ind))
-    bounds[["lb"]]<-vector("double",length = length(x_ind))
-    cont<-1
-    for (el in names(x[x_ind])){
-      bounds[["ub"]][cont]<-as.numeric(as.character(input[[el]][2]))
-      bounds[["lb"]][cont]<-as.numeric(as.character(input[[el]][1]))
-      cont<-cont+1
-    }
-    bounds
-  })
-  return(list("parms"=parList,"bounds"=boundList))
 }
+
+getParams<-function(input,method){
+  x<-reactiveValuesToList(input)
+  if (method=="verhulst"){
+    x$par4_sig<-NULL
+    x$par5_sig<-NULL
+    x$par6_sig<-NULL
+    x$par7_sig<-NULL
+    x$bound_d<-NULL
+    x$bound_e<-NULL
+    x$bound_f<-NULL
+    x$bound_g<-NULL
+  }
+  if (method=="empirique"){
+    x$par4_sig<-NULL
+    x$par5_sig<-NULL
+    x$par6_sig<-NULL
+    x$par7_sig<-NULL
+    x$bound_d<-NULL
+    x$bound_e<-NULL
+    x$bound_f<-NULL
+    x$bound_g<-NULL
+  }
+  if (method=="gompertz"){
+    x$par4_sig<-NULL
+    x$par5_sig<-NULL
+    x$par6_sig<-NULL
+    x$par7_sig<-NULL
+    x$bound_d<-NULL
+    x$bound_e<-NULL
+    x$bound_f<-NULL
+    x$bound_g<-NULL
+  }
+  if (method=="log_poly"){
+    x$par1_sig<-NULL
+    x$par2_sig<-NULL
+    x$par3_sig<-NULL
+    x$par4_sig<-NULL
+    x$par5_sig<-NULL
+    x$par6_sig<-NULL
+    x$par7_sig<-NULL
+    x$bound_a<-NULL
+    x$bound_b<-NULL
+    x$bound_c<-NULL
+    x$bound_d<-NULL
+    x$bound_e<-NULL
+    x$bound_f<-NULL
+    x$bound_g<-NULL
+  }
+  x_ind<-grep("par[1-9]+",names(x),perl = T)
+  newlist<-vector("list",length(x_ind))
+  names(newlist)<-names(x[x_ind])
+  for (el in names(newlist)){
+    newlist[[el]]<-as.numeric(as.character(input[[el]]))
+  }
+  names(newlist)<-gsub("_sig","",names(newlist))
+  names(newlist)<-gsub("params-","",names(newlist))
+  
+  x_ind<-grep("bound_[a-z]+",names(x),perl = T)
+  bounds<-list()
+  bounds[["ub"]]<-vector("double",length = length(x_ind))
+  bounds[["lb"]]<-vector("double",length = length(x_ind))
+  cont<-1
+  for (el in names(x[x_ind])){
+    bounds[["ub"]][cont]<-as.numeric(as.character(input[[el]][2]))
+    bounds[["lb"]][cont]<-as.numeric(as.character(input[[el]][1]))
+    cont<-cont+1
+  }
+  return(list("para"=newlist,"bounds"=bounds))
+}
+
 fitPoids<-function(t,poids,method){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
