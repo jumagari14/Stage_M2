@@ -6,13 +6,9 @@ lapply(list.of.packages,require,character.only=TRUE)
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
 Noisify <- function(data,bruit) {
-  #  noise <- runif(length(data), -bruit, bruit)
   noise<-rnorm(length(data),0,bruit)
   noisified <- data+noise
   noisified[noisified<0]=data[noisified<0]*0
-  # si la valeur bruit?e est n?gative, on diminue le bruit 
-  #noisified[noisified<0]=data[noisified<0]+runif(length(noisified[noisified<0]), -data[noisified<0], data[noisified<0])
-  #noisified[noisified<0]=data[noisified<0]+rnorm(length(noisified[noisified<0]), 0,data[noisified<0] )
   return(noisified)
 }
 stageDensity_v2<-function(mrna_data,proteo_data,days_pca,lab_y,lab_x){
@@ -38,16 +34,9 @@ stageDensity_v2<-function(mrna_data,proteo_data,days_pca,lab_y,lab_x){
                                  plot.margin= unit(c(0, 1, 0.5, 0.5), "lines"))+scale_x_continuous(trans = "log10",limits = c(1e-6,3e7))
     }
   }
-  # prueba1<-lapply(l, ggplotGrob)
-  # prueba2<-do.call(rbind,c(prueba1,size="last"))
-  # grid.draw(prueba2)
   plot_grid(plotlist = l,ncol = 1,align = "hv",hjust=1,vjust=1)
   ggarrange(plots = l,ncol=1,bottom = textGrob(lab_x,hjust=0,vjust=0),left =textGrob(lab_y,rot=90,vjust=1))
-  # grid.arrange(arrangeGrob(grobs = l,
-  #                          nnow = 3,
-  #                          left=textGrob(lab_y,rot=90,vjust=1),
-  #                          bottom = textGrob(lab_x,hjust=0,vjust=0)),
-  #              nrow=1)
+
 }
 combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   g<-plotDensity(t(mrna_data),"","","",moyenne)
@@ -94,8 +83,8 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
   ns<-session$ns
   pair_ret<<-Filter(function(x) identical(x[["Transcrit_ID"]],trans_id),resvalid)
   output$scores<-renderUI({
-    ks1<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
-    ks2<-paste("Normalized ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
+    ks1<-paste("ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1]*mean(pair_ret[[1]][["Protein_val"]],na.rm=T)/mean(pair_ret[[1]][["Transcrit_val"]],na.rm = T))
+    ks2<-paste("Ks value",pair_ret[[1]][["SOL"]][["solK"]][2,1])
     ks3<-paste("Kd value",pair_ret[[1]][["SOL"]][["solK"]][3,1])
     mes0<-paste("Protein fitting error: ",pair_ret[[1]][["SOL"]][["error"]][["errg"]][1])
     mes1<-paste("Error message: ",pair_ret[[1]][["SOL"]][["error"]][["message"]])
@@ -110,7 +99,7 @@ resultsKsKd<-function(input,output,session,resvalid,trans_id){
     grid.arrange(pair_ret[[1]][["plot_mrna"]],pair_ret[[1]][["SOL"]][["plot_fit_prot"]],ncol=2)
   })
   output$ellip<-renderPlot({
-    pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)#,pair_ret[[1]][["SOL"]][["manualEllipse"]],ncol=1)
+    pair_ret[[1]][["SOL"]][["confEllipsePlot"]]+geom_point(aes(x=pair_ret[[1]][["SOL"]][["solK"]][2,1],y=pair_ret[[1]][["SOL"]][["solK"]][3,1],shape="circle filled"),fill="red")+scale_shape(guide=FALSE)
   })
   
 }
@@ -262,7 +251,7 @@ getParams<-function(input,method){
 fitPoids<-function(t,poids,method){
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
-  gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
+  gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) 
   logisgen<-y~par1*(1+exp((par2-t)/par3)^(-1/par4))
   empirique<-y~exp(par1*(t-par3)/(par2+t-par3))
   simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
@@ -292,8 +281,6 @@ fitPoids<-function(t,poids,method){
     parList<-c(r=5,K=2,R=100)
     y0<-1
     dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
-    # cont_fit<-linFitting(as.vector(t),y0,parlist = parList,formula_fit = odeFitting,ub=c(Inf,Inf,130,2),lb=c(0,0,90,0.05))
-    # print(fitted(cont_fit))
   }
   if (method=="double_sig"){
     parlist = list("par1"=48,"par2"=0.144,"par3"=35,"par4"=0.4,"par5"=48,"par6"=0.042,"par7"=90)
@@ -302,13 +289,9 @@ fitPoids<-function(t,poids,method){
     mu.list <- split(coef(db_sigFit), names(coef(db_sigFit)))
     mu.list <- lapply(mu.list, unname)
     final.form<-db_sigFit
-    # plot(t,poids)
-    # lines(t,fitted(db_sigFit),col=2,lwd=2)
     
   }
   if (method=="log_poly"){
-    # poly_model<-lm(log(unlist(poids))~poly(unlist(t),3,raw = T))
-    # new_y<-predict.lm(poly_model,data.frame(t))
     wp3<-polyfit(unlist(t),log(unlist(poids)),3)
     new_y<-polyval(wp3,unlist(t))
     new_y<-exp(new_y)
@@ -317,12 +300,6 @@ fitPoids<-function(t,poids,method){
   }
   err<-norm(poids-fitted(final.form),"2")/norm(poids,"2")
   return(list("coefs"=mu.list,"formula"=final.form,"error"=err,"graph"=g))
-  # 
-  #   data_prueba<-select_if(total_data[1:5,],is.numeric)
-  #   t<-t(as.matrix(seq(1,27)))
-  #   y<-as.matrix(data_prueba[2,1:27])
-  #   
-  #   fitting<-nlsLM(formula =formula_fit,start = parlist,data = data.frame("t"=t,"y"=y))
 } 
 fitPoids_v2<-function(t,poids,method,listpar,bounds){
   t<-as.numeric(pull(t))
@@ -332,7 +309,7 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
   
   verhulst<-y~(par2*par3)/(par3+(par2-par3)*exp(-par1*t))
   dverhulst_form<-y~r*y*(1-y/K)
-  gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) ## ???
+  gompertz<-y~par2*exp(log(par3/par2)*exp(-par1*t)) 
   logisgen<-y~par1*(1+exp((par2-t)/par3)^(-1/par4))
   empirique<-y~exp(par1*(t-par3)/(par2+t-par3))
   simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
@@ -387,8 +364,7 @@ odeFitting<-function(t,y,parlist,formula){
   fitting<-ode(y=c(y=y),t,func = formula,parms = parlist,method = "ode45")
   return(fitting)
 }
-# plot(t,y)
-# lines(t,fitted(fitting),col=2,lwd=2)
+
 loadData<-function(data,trans_sheet,prot_sheet,poids){
   if (grepl("xls[x]*",data,perl = T)){
     data_trans<-read_xlsx(path = data,sheet = trans_sheet)
@@ -433,13 +409,10 @@ normaMean<-function(proteo_data,mrna_data,ks){
   return(list("mrna"=RNA,"prot"=PROT,"ks"=ks_norm))
 }
 mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
-  # if (exists("dpa_analyse")){
-  #   dpa<-dpa_analyse
-  # }
   if (method=="verhulst"){
     coefs<-coef(formula_fitting)
     y_fit<-fitted(formula_fitting)
-    mu_val<-function (par1,par2,y) return(par1*(1-y_fit/par2)) ## t ou y
+    mu_val<-function (par1,par2,y) return(par1*(1-y_fit/par2)) 
     val<-mu_val(parlist$par1,parlist$par2,dpa)
     
     
@@ -463,7 +436,6 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
     d_par<-polyder(unlist(parlist,use.names = F))
     val<-polyval(d_par,dpa)/std(dpa)  
     
-    ## Acabar...
   }
   if (method=="double_sig"){
     
@@ -507,12 +479,6 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm,algo){
     parInit3<-list("start_prot"=init,"ks"=ks_min*0.05,"kd"=ks_min*0.5)
     parInit4<-list("start_prot"=init,"ks"=ks_min*0.01,"kd"=ks_min*0.1)
     
-    # parInit<-list("start_prot"=init,"ks"=ksnorm[2]*0.03,"kd"=4.5e-3*3)
-    # parInit2<-list("start_prot"=init,"ks"=ksnorm[2]*0.02,"kd"=4.5e-3*20)
-    # parInit3<-list("start_prot"=init,"ks"=ksnorm[2]*0.05,"kd"=4.5e-3*50)
-    # parInit4<-list("start_prot"=init,"ks"=ksnorm[2]*1e-4,"kd"=4.5e-3*1e3)
-    # upper = c(Inf,ksnorm[2],24)
-    # c(0,ksnorm[1],4.5e-3)
     if (algo=="LM"){
       parMu<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
       parMu2<-nlsLM(prot_conc~ode(y=start_prot,times = dpa,func = eqDifPrinc,parms = c(ks=ks,kd=kd),method = "ode45")[,2],start = parInit2,control=nls.lm.control(ftol=1e-6,maxiter=1000,ptol=1e-6),lower = c(0,0,0))
@@ -559,11 +525,9 @@ solgss_Borne<-function(dpa,prot_conc,ks_min,ksnorm,algo){
     } 
     else {
       confEllipsePlot<-ggplot()+geom_polygon(confEllipse2,mapping=aes(x=x,y=y,colour=source,fill=source),alpha=0.3)+theme+ylab("kd")+xlab("Ks")
-      ## check ellipse package 
     }
     
-    # curveEllipse<-confEllipse(parMu,prot_data =prot_conc,dpa=dpa,c(min(confEllipse[["0.9"]][,1]),max(confEllipse[["0.9"]][,1])),c(min(confEllipse[["0.9"]][,2]),max(confEllipse[["0.9"]][,2])))
-    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"validEllipse"=validEllipse,"confEllipsePlot"=confEllipsePlot))#,"manualEllipse"=curveEllipse))
+    return(list("solK"=parmu,"sumsq"=resnorm,"opt_eval"=opt_setp,"error"=err_mes,"prot_fit"=sol,"modelList"=model_list,"validEllipse"=validEllipse,"confEllipsePlot"=confEllipsePlot))
   }
   
 }
@@ -660,7 +624,6 @@ init_conc<-function(dpa,prot_conc){
   return(list("init"=p0,"min"=pMin,"max"=pMax))
 }
 eqDifPrinc<-function(time,state,par){
-  # y<-state["y"]
   ks<-par["ks"]
   kd<-par["kd"]
   val<-unlist(ks)*solmRNA(time,fittedmrna$coefs,fitR)-(unlist(kd)+mu(dpa=c(time),fitWe,poids_coef,formula_poids,dpa_analyse = NULL)/predict(formula_poids,data.frame(t=time)))*state

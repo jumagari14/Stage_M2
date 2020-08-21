@@ -3,7 +3,6 @@ library(ggplot2)
 library(grid)
 library(egg)
 
-# source("input.r")
 
 
 function(input, output, session) {
@@ -27,7 +26,6 @@ function(input, output, session) {
     }
   })
   observeEvent(input$method_we, {
-    # updateTabsetPanel(session, "params", selected = input$method_we)
     updateTabsetPanel(session,"formulas",selected = input$method_we)
   })
   observe({
@@ -37,10 +35,8 @@ function(input, output, session) {
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       test_list<<-list_data$parse
-      # test_list<<-sample(test_list,30)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
-      # test_el<<-sample(test_list,1)[[1]])
       output$select_pair<-renderUI({
         selectInput("sel_pair","Select protein",unlist(list.map(test_list,Transcrit_ID)))
       })
@@ -54,7 +50,6 @@ function(input, output, session) {
       test_list<<-list_data$parse
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
-      # test_el<<-sample(test_list,1)[[1]])
       output$select_pair<-renderUI({
         selectInput("sel_pair","Select protein",unlist(list.map(test_list,Transcrit_ID)))
       })
@@ -68,8 +63,6 @@ function(input, output, session) {
   
   observe({
     parList<-callModule(paramList,"params",input$method_we)
-    # parList<<-parList$parms
-    # boundList<<-parList$bounds
     })
   observeEvent(input$fit_op,{
     uiParams<-getParams(input,input$method_we)
@@ -165,7 +158,6 @@ function(input, output, session) {
       if(Sys.info()["sysname"]=="Linux"){
         num_cor<-detectCores()-1
       }
-     # res_list<-for (el in test_list){
     res_list<-pblapply(X=test_list,function(el){
       print(el[["Transcrit_ID"]])
         tryCatch({
@@ -240,9 +232,6 @@ function(input, output, session) {
       need(as.numeric(as.character(input$err_th))<1,"Check threshold value")
     )
     req(exists("final_table"))
-    # if (as.numeric(as.character(input$err_th))<=0){
-    #   showNotification("Invalid threshold value",type = "error")
-    # }
     valid_table<<-final_table[which((final_table$`Fitting error value`<as.numeric(as.character(input$err_th))) & (final_table$`Valid confidence ellipse`==TRUE)  & (final_table$`Optimization error score`==10)),]
     output$validTable<-downloadHandler(
       filename = function(){
@@ -258,7 +247,6 @@ function(input, output, session) {
       showNotification("No valid results are found",type = "error")
     }
   })
-# (final_table$`Optimization error score`==10) &
   observeEvent(input$res_trans,{
     callModule(resultsKsKd,"res_trans",valid_res,input$res_trans)})
   onStop(function() {

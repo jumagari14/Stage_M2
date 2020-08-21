@@ -52,7 +52,7 @@ fluidPage(theme = shinytheme("united"),useShinyjs(),tags$style("#params { displa
                                                                                 '))),
                                   fileInput("weight_data","Choose weight data to be fitted",accept = c("text/csv")),
                                   div(style="display:inline-block",selectInput("method_we","Select fitting formula",choices = c("Double sigmoid"="double_sig","Logistic"="verhulst","Gompertz"="gompertz","Empiric"="empirique"))),
-                                  div(style="display:inline-block",formula_tabs), ## "Contois"="contois",,"Noyau"="seed",
+                                  div(style="display:inline-block",formula_tabs), 
                                   paramListInput("params"),
                                   div(style="display:inline-block",actionButton("fit_op","Fit")),
                                   div(style="display:inline-block",actionButton("clearGraph","Clear graphs"))
