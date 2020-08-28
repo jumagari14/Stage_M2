@@ -4,18 +4,22 @@
 # les directives Slurm vont ici:
 
 # Your job name (displayed by the queue)
-#SBATCH -J Fmol
+#SBATCH -J Kiwi_red5
 
 # walltime (hh:mm::ss)
-#SBATCH -t 10:00:00
+#SBATCH -t 96:00:00
 
 # Specify the number of nodes(nodes=) and the number of cores per nodes(tasks-pernode=) to be used
 #SBATCH -N 1
-#SBATCH --tasks-per-node=8
+#SBATCH --tasks-per-node=4
+
 
 # change working directory
-# SBATCH --chdir=.
+#SBATCH --chdir=.
 
+
+#SBATCH  -p workq
+#SBATCH --mem-per-cpu=40000
 # fin des directives PBS
 #############################
 
@@ -27,6 +31,7 @@ echo "Date:" `date`
 echo "Host:" `hostname`
 echo "Directory:" `pwd`
 echo "SLURM_JOBID:" $SLURM_JOBID
+echo $MaxMemPerCPU
 echo "SLURM_SUBMIT_DIR:" $SLURM_SUBMIT_DIR
 echo "SLURM_JOB_NODELIST:" $SLURM_JOB_NODELIST
 echo "#############################" 
@@ -34,99 +39,79 @@ echo "#############################"
 #############################
 
 ## Load necessary modules
-module load jdk1.8/8u22
-module load python/3.7.2 
-module load bioinfo/cufflinks-2.2.1: /usr/local/bioinfo/src/Cufflink/cufflinks-2.2.1.Linux_x86_64/cufflinks
-module load bioinfo/Trimmomatic-0.38 : java -jar $TRIM_HOME/trimmomatic.jar
-module load bioinfo/HTSeq-0.9.1: 
-module load bioinfo/STAR-2.6.0c
+module load system/parallel-20180122
+module load system/Python-3.7.4
+module load bioinfo/cufflinks-2.2.1
+module load bioinfo/Trimmomatic-0.38 
+module load bioinfo/HTSeq-0.9.1 
+module load bioinfo/STAR-2.5.1b
 module load bioinfo/FastQC_v0.11.7
 
-check=$(python3.7 -c "import HTSeq" | echo $?)
-if (($check==1))
-    then
-    pip3.7 install --user HTSeq 
-fi
-
-export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/gcc/7.3.0/lib64/:/gpfs/softs/contrib/apps/gcc/7.3.0/lib
-export LD_LIBRARY_PATH=/gpfs/softs/contrib/apps/python/3.7.2/lib:$LD_LIBRARY_PATH
-
-cd /gpfs/home/juagarcia/ 
-list=$(ls data/*fq | xargs -n 1 basename | sed 's/\(.*\)_.*/\1/' | sort -u)
-
+cd ~/ 
+list=$(ls work/data/*fastq* | xargs -n 1 basename | sed 's/\(.*\)_.*/\1/' | sort -u )
+list1=$(echo $list | cut -f 14 -d " ")
+list2=$(echo $list | cut -f 15-27 -d " ")
 mkdir -p -m 755 bin/trimm_data 
 mkdir -p -m 755 bin/trimm_data/quality
 
-gff=$(find data/ -not -path '*/\R*' -name "*gff*")
-fasta=$(find data/ -name "*.fa")
-~/scripts/gffread "$gff" -o "$gff".gtf
-tail -n +4 "$gff".gtf > ~/data/tmp ; mv ~/data/tmp "$gff".gtf
+gff=$(find work/data/ -name "*gff[3]*")
+fasta=$(find work/data/ -name "*.fa")
+fake_fasta=$(find work/data/ -name "*.fasta")
 
-if [ ! -d "bin/genome_ind" ] 
+if [ ! -d "work/bin/genome_ind" ] 
  then  ## Genome indexes are generated if necessary 
-    mkdir -m 755 -p bin/genome_ind 
-    ./scripts/STAR \
-    --runThreadN 64 \
+    mkdir -m 755 -p work/bin/genome_ind 
+    STAR \
+    --runThreadN 4 \
     --runMode genomeGenerate \
-    --genomeDir ./bin/genome_ind \
-    --genomeFastaFiles "$fasta" \
-    --genomeSAindexNbases 14 \
-    --sjdbOverhang 149 \
-    --sjdbGTFfile "$gff".gtf \
-    --genomeChrBinNbits 18 
+    --genomeDir /work/jgarcia/bin/genome_ind \
+    --genomeFastaFiles "$fasta" "$fake_fasta" \
+    --sjdbGTFtagExonParentGene ID \
+    --sjdbGTFtagExonParentTranscript Parent \
+    --sjdbOverhang 299 \
+    --genomeSAindexNbases 13 \
+    --sjdbGTFfile "$gff"
 fi  
 
-mkdir -p -m 755 bin/STAR_Align  
-mkdir -p -m 755 bin/counts
+mkdir -p -m 755 work/bin/STAR_Align  
+mkdir -p -m 755 work/bin/counts 
+mkdir -p -m 755 work/bin/fpkm 
 
-
-./scripts/STAR --genomeLoad LoadAndExit --genomeDir ./bin/genome_ind
-for I in $list
+for I in $list1
 do 
-    ./scripts/FastQC/fastqc ./data/"$I"_R1.fq ./data/"$I"_R2.fq --outdir=./bin/trimm_data/quality
-    java -jar ./scripts/Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 64 -phred33 ./data/"$I"_R1.fq ./data/"$I"_R2.fq ./bin/trimm_data/"$I"_R1.par.fq "$I"_R1.unp.fq ./bin/trimm_data/"$I"_R2.par.fq "$I"_R2.unp.fq ILLUMINACLIP:./scripts/Trimmomatic-0.39/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:25
-    rm -rf "$I"_R1.unp.fq "$I"_R2.unp.fq
-
-    ./scripts/STAR --runThreadN 64 --genomeDir ./bin/genome_ind --outFileNamePrefix ./bin/STAR_Align/"$I" --runMode alignReads --genomeLoad LoadAndKeep --readFilesIn ./bin/trimm_data/"$I"_R1.par.fq  ./bin/trimm_data/"$I"_R2.par.fq  --outSAMtype BAM SortedByCoordinate --twopassMode None --quantMode - --outSAMstrandField intronMotif --outSAMattrIHstart 1 --outSAMattributes NH HI AS nM NM MD MC jM jI ch --outSAMprimaryFlag OneBestScore --outSAMmapqUnique 60 --outSAMunmapped Within --outFilterType Normal --outFilterMultimapScoreRange 1 --outFilterMultimapNmax 10 --outFilterMismatchNmax 10 --outFilterMismatchNoverLmax 0.3 --outFilterMismatchNoverReadLmax 1.0 --outFilterScoreMin 0 --outFilterScoreMinOverLread 0.66 --outFilterMatchNmin 0 --outFilterMatchNminOverLread 0.66 --outSAMmultNmax -1 --outSAMtlen 1 --outBAMsortingThreadN 10 --outBAMsortingBinsN 50 --limitBAMsortRAM 10000200000
-    python3.7 ./scripts/htseq-count -f bam -t mRNA --stranded=no -i geneID ./bin/STAR_Align/"$I"Aligned.sortedByCoord.out.bam "$gff".gtf > ./bin/counts/HTSeq_"$I".txt
-done 
-./scripts/STAR --genomeLoad Remove --genomeDir ./bin/genome_ind
-
-python3.6 fpkm.py -d "$1"/fpkm/
-
-python3.6 tpm_to_C.py -d "$1"/tpm/ -f "$2"
-
-cd "$1"
-
-files=$(find tpm/ -type f | sort)
-files=$(readlink -f $files)
-count=0
-touch TPM_"$2".csv
-
-for J in $files 
-do 
-    count=$((count+1))
-    iden=$(echo "$J" | rev | cut -d '/' -f 2 | rev | cut -d '_' -f 1)
-    cat "$J" > temp 
-    sed "1d" temp > tempfile ; mv tempfile temp
-    sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 
-    if (($count == 1))
-    then 
-        cat temp > TPM_"$2".csv
-    else 
-        cut -d ',' -f 2 temp  > count_ind
-        paste -d ',' TPM_"$2".csv count_ind > temp2 && mv temp2 TPM_"$2".csv 
-        rm -f temp2 
+    if [ ! -s "work/bin/trimm_data/quality/"$I"_R1_fastqc.html" ] && [ ! -s "work/bin/trimm_data/quality/"$I"_R2_fastqc.html" ]; then 
+        fastqc work/data/"$I"_R1.fastq.gz work/data/"$I"_R2.fastq.gz --outdir=work/bin/trimm_data/quality
+    fi 
+    if [ ! -s "work/bin/trimm_data/"$I"_R1.par.fastq.gz" ] && [ ! -s "work/bin/trimm_data/"$I"_R2.par.fastq.gz" ]; then  
+        java -jar $TRIM_HOME/trimmomatic.jar PE -threads 4 -phred33 work/data/"$I"_R1.fastq.gz work/data/"$I"_R2.fastq.gz work/bin/trimm_data/"$I"_R1.par.fastq.gz "$I"_R1.unp.fastq.gz work/bin/trimm_data/"$I"_R2.par.fastq.gz "$I"_R2.unp.fastq.gz ILLUMINACLIP:$TRIM_HOME/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:25
+        rm -rf "$I"_R1.unp.fastq.gz "$I"_R2.unp.fastq.gz
+    fi
+    if [ ! -s "work/bin/STAR_Align/"$I"Aligned.sortedByCoord.out.bam" ]; then
+        STAR --runThreadN 4 --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --genomeDir work/bin/genome_ind --outFileNamePrefix work/bin/STAR_Align/"$I" --runMode alignReads --readFilesIn work/bin/trimm_data/"$I"_R1.par.fastq.gz  work/bin/trimm_data/"$I"_R2.par.fastq.gz  --outSAMstrandField intronMotif --outSAMattributes All 
+    fi
+    if [ ! -s "work/bin/counts/HTSeq_"$I".txt" ]; then
+        htseq-count -f bam -t exon --stranded=no -i Parent work/bin/STAR_Align/"$I"Aligned.sortedByCoord.out.bam "$gff" > work/bin/counts/HTSeq_"$I".txt
+    fi
+    if [ ! -s "work/bin/fpkm/"$I"/genes.fpkm_tracking" ]; then 
+        cufflinks -G "$gff" -o work/bin/fpkm/"$I"/ work/bin/STAR_Align/"$I"Aligned.sortedByCoord.out.bam
     fi 
 done 
+STAR --genomeLoad Remove --genomeDir work/bin/genome_ind
 
-rm count_ind temp
+cd $1
+cp work/bin/fpkm $1
+
+python3.6 count_to_tpm.py -d "$2"/fpkm/
+
+python3.6 tpm_to_C.py -d "$2"/tpm/ -f "$3"
+
+cd "$1"; 
 
 files=$(find Conc/ -type f | sort)
 files=$(readlink -f $files)
 
 count=0
-touch Conc_"$2".csv
+touch Conc.csv
 
 for J in $files 
 do 
@@ -135,37 +120,11 @@ do
     cat "$J" > temp 
     sed "1d" temp > tempfile ; mv tempfile temp
     sed "1 i\Gene,$iden" temp > tempfile ; mv tempfile temp 
-    if (($count == 1))
-    then 
-        cat temp > Conc_"$2".csv
+    if (($count == 1)); then 
+        cat temp > Conc.csv
     else 
         cut -d ',' -f 2 temp  > count_ind
-        paste -d ',' Conc_"$2".csv count_ind > temp2 && mv temp2 Conc_"$2".csv 
-        rm -f temp2 
-    fi 
-done 
-
-rm count_ind temp 
-
-
-files=$(find readCount/ -type f | sort)
-files=$(readlink -f $files)
-
-count=0
-touch readCount.csv
-
-for J in $files 
-do 
-    count=$((count+1))
-    iden=$(echo "$J" | rev | cut -d '/' -f 1 | rev | cut -d '_' -f 1 | cut -d '-' -f 2)
-    cat "$J" > temp 
-    sed $"1 i\Read\t$iden" temp > tempfile ; mv tempfile temp 
-    if (($count == 1))
-    then 
-        paste -d ',' readCount.csv temp > file1 && mv file1 readCount.csv
-    else 
-        cut -f 2 temp  > count_ind
-        paste -d ',' readCount.csv count_ind > temp2 && mv temp2 readCount.csv 
+        paste -d ',' Conc.csv count_ind > temp2 && mv temp2 Conc.csv 
         rm -f temp2 
     fi 
 done 

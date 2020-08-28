@@ -1,6 +1,5 @@
-#!/usr/bin/python3.6
 """
-Juan Manuel Garcia 
+Garcia, Juan Manuel 
 Calculate concentration of each transcript from TPM values 
 Based on equations explained in https://arxiv.org/pdf/1104.3889.pdf
 
