@@ -1,8 +1,7 @@
-list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr", "readr","getopt","NlcOptim","rlist","foreach","doParallel","data.table","reader","pbapply","car","ellipse","nls2","nlstools","egg")
+list.of.packages <- c("deSolve", "minpack.lm","readxl","reshape2","pracma","ggplot2","dplyr","parallel","readr","rlist","data.table","reader","pbapply","car","ellipse","egg","grid")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,repos="https://pbil.univ-lyon1.fr/CRAN/")
 lapply(list.of.packages,require,character.only=TRUE)
-
 theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
 Noisify <- function(data,bruit) {
@@ -41,10 +40,10 @@ stageDensity_v2<-function(mrna_data,proteo_data,days_pca,lab_y,lab_x){
 combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
   g<-plotDensity(t(mrna_data),"","","",moyenne)
   if (moyenne){
-    melted_pro<-melt(rowMeans(proteo_data,na.rm = T))
+    melted_pro<-reshape2::melt(rowMeans(proteo_data,na.rm = T))
   }
   else{
-    melted_pro<-melt(proteo_data)
+    melted_pro<-reshape2::melt(proteo_data)
   }
   med_pro<-median(melted_pro$value[melted_pro$value>0],na.rm = T)
   g1<-g+geom_histogram(data = melted_pro,aes(value),bins=30)+geom_vline(xintercept=med_pro,linetype="dotdash",color="darkblue")
@@ -58,10 +57,10 @@ combineGraphs<-function(mrna_data,proteo_data,annotation,moyenne){
 plotDensity<-function(dataframe, title,lab_x,lab_y,moyenne){
   theme<-theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.x=element_text(colour="black"),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
   if (moyenne){
-    melted<-melt(colMeans(dataframe,na.rm = T))
+    melted<-reshape2::melt(colMeans(dataframe,na.rm = T))
   }
   else{
-    melted<-melt(dataframe)
+    melted<-reshape2::melt(dataframe)
   }
   med<-median(melted$value[melted$value>0],na.rm = T)
   g<-ggplot()+geom_histogram(data=melted,aes(value),bins = 30)+scale_x_log10()+xlab(lab_x)+
@@ -180,51 +179,31 @@ paramList<-function(input,output,session,method){
 
 getParams<-function(input,method){
   x<-reactiveValuesToList(input)
-  if (method=="verhulst"){
-    x$par4_sig<-NULL
-    x$par5_sig<-NULL
-    x$par6_sig<-NULL
-    x$par7_sig<-NULL
-    x$bound_d<-NULL
-    x$bound_e<-NULL
-    x$bound_f<-NULL
-    x$bound_g<-NULL
-  }
-  if (method=="empirique"){
-    x$par4_sig<-NULL
-    x$par5_sig<-NULL
-    x$par6_sig<-NULL
-    x$par7_sig<-NULL
-    x$bound_d<-NULL
-    x$bound_e<-NULL
-    x$bound_f<-NULL
-    x$bound_g<-NULL
-  }
-  if (method=="gompertz"){
-    x$par4_sig<-NULL
-    x$par5_sig<-NULL
-    x$par6_sig<-NULL
-    x$par7_sig<-NULL
-    x$bound_d<-NULL
-    x$bound_e<-NULL
-    x$bound_f<-NULL
-    x$bound_g<-NULL
+  if (any(method==c("verhulst","empirique","gompertz"))){
+    x[["params-par4_sig"]]<-NULL
+    x[["params-par5_sig"]]<-NULL
+    x[["params-par6_sig"]]<-NULL
+    x[["params-par7_sig"]]<-NULL
+    x[["params-bound_d"]]<-NULL
+    x[["params-bound_e"]]<-NULL
+    x[["params-bound_f"]]<-NULL
+    x[["params-bound_g"]]<-NULL
   }
   if (method=="log_poly"){
-    x$par1_sig<-NULL
-    x$par2_sig<-NULL
-    x$par3_sig<-NULL
-    x$par4_sig<-NULL
-    x$par5_sig<-NULL
-    x$par6_sig<-NULL
-    x$par7_sig<-NULL
-    x$bound_a<-NULL
-    x$bound_b<-NULL
-    x$bound_c<-NULL
-    x$bound_d<-NULL
-    x$bound_e<-NULL
-    x$bound_f<-NULL
-    x$bound_g<-NULL
+    x[["params-par1_sig"]]<-NULL
+    x[["params-par2_sig"]]<-NULL
+    x[["params-par3_sig"]]<-NULL
+    x[["params-par4_sig"]]<-NULL
+    x[["params-par5_sig"]]<-NULL
+    x[["params-par6_sig"]]<-NULL
+    x[["params-par7_sig"]]<-NULL
+    x[["params-bound_a"]]<-NULL
+    x[["prams-bound_b"]]<-NULL
+    x[["params-bound_c"]]<-NULL
+    x[["params-bound_d"]]<-NULL
+    x[["prams-bound_e"]]<-NULL
+    x[["params-bound_f"]]<-NULL
+    x[["params-bound_g"]]<-NULL
   }
   x_ind<-grep("par[1-9]+",names(x),perl = T)
   newlist<-vector("list",length(x_ind))
@@ -277,11 +256,6 @@ fitPoids<-function(t,poids,method){
     mu.list <- lapply(mu.list, unname)
     final.form<-emp_fit
   }
-  if (method=="contois"){
-    parList<-c(r=5,K=2,R=100)
-    y0<-1
-    dev_poids<-odeFitting(as.vector(t),y0,parlist = parList,formula = contois)
-  }
   if (method=="double_sig"){
     parlist = list("par1"=48,"par2"=0.144,"par3"=35,"par4"=0.4,"par5"=48,"par6"=0.042,"par7"=90)
     db_sigFit<-linFitting(as.vector(t),as.vector(poids),parlist = parlist,formula_fit = doubl_sig,ub=NULL,lb=c(0,0,0,0,0,0,0))
@@ -314,7 +288,7 @@ fitPoids_v2<-function(t,poids,method,listpar,bounds){
   empirique<-y~exp(par1*(t-par3)/(par2+t-par3))
   simpl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))
   doubl_sig<-y~par4+par1/(1+exp(-par2*(t-par3)))+par5/(1+exp(-par6*(t-par7)))
-  g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)))
+  g<-ggplot()+geom_point(aes(x=unlist(t),y=unlist(poids)),size=3)
   
   
   if (method=="verhulst"){
@@ -360,10 +334,6 @@ linFitting<-function(t,y,parlist,formula_fit,ub,lb){
   fitting<-nlsLM(formula =formula_fit,start = parlist,data = as.data.frame(list("t"=as.matrix(t),"y"=as.matrix(y))),upper = ub,lower = lb)
   return(fitting)
 }
-odeFitting<-function(t,y,parlist,formula){
-  fitting<-ode(y=c(y=y),t,func = formula,parms = parlist,method = "ode45")
-  return(fitting)
-}
 
 loadData<-function(data,trans_sheet,prot_sheet,poids){
   if (grepl("xls[x]*",data,perl = T)){
@@ -393,14 +363,6 @@ loadData<-function(data,trans_sheet,prot_sheet,poids){
   
   
 }
-contois<-function(time,state,par) {
-  r<-par["r"]
-  K<-par["K"]
-  R<-par["R"]
-  y<-state["y"]
-  dy<-as.numeric(r)*as.numeric(y)*(1-as.numeric(y)/as.numeric(K))/(as.numeric(K)+(as.numeric(R)-1)*y)
-  list(dy)
-}
 normaMean<-function(proteo_data,mrna_data,ks){
   RNA<-mrna_data/mean(mrna_data,na.rm = T)
   PROT<-proteo_data/mean(proteo_data,na.rm = T)
@@ -422,12 +384,6 @@ mu<-function(dpa,method,parlist,formula_fitting,dpa_analyse){
     y_fit<-fitted(formula_fitting)
     mu_val<-function (par1,par2,y) return(par1*log(par2/y_fit))
     val<-mu_val(parlist$par1,parlist$par2,dpa)
-  }
-  if (method=="contois"){
-    y0<-parlist$y
-    dev_poids<-odeFitting(as.vector(dpa),y0,parlist = parlist,formula = contois)
-    y_val<-dev_poids[,2]
-    val<-parlist$par1*(1-y_val/parlist$par2)/(parlist$par2+(parlist$par3-1)*y_val)
   }
   if (method=="empirique"){
     val<-parlist$par1*parlist$par2/(parlist$par2+dpa-parlist$par3)^2
@@ -639,7 +595,7 @@ plotFitmRNA<-function(dpa,exp_data,fit_data,title){
 }
 plotFitProt<-function(dpa,exp_data,fit_data,title){
   merg_data<-as.data.frame(cbind(dpa,exp_data,fit_data))
-  melt_data<-melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
+  melt_data<-reshape2::melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
   
   g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))+ggtitle(title)
   return(g)

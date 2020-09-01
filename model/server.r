@@ -1,9 +1,3 @@
-library(shiny)
-library(ggplot2)
-library(grid)
-library(egg)
-
-
 
 function(input, output, session) {
   fit_op<-reactiveValues(data=NULL)
@@ -35,6 +29,7 @@ function(input, output, session) {
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       test_list<<-list_data$parse
+      test_list<<-sample(test_list,100)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       output$select_pair<-renderUI({
@@ -137,7 +132,6 @@ function(input, output, session) {
       fitR<<-input$fit_mrna
       fitWe<<-input$method_we
       cl1 <- makeCluster(detectCores() - 1)
-      registerDoParallel(cl1)
       mess<-showNotification(paste("Running..."),duration = NULL,type = "message")
       clusterEvalQ(cl1, {
         ## set up each worker.  Could also use clusterExport()
@@ -146,7 +140,6 @@ function(input, output, session) {
         library(ggplot2)
         library(grid)
         library(egg)
-        library(car)
         NULL
       })
       
