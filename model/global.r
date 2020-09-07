@@ -594,9 +594,12 @@ plotFitmRNA<-function(dpa,exp_data,fit_data,title){
   return(g)
 }
 plotFitProt<-function(dpa,exp_data,fit_data,title){
+  if(any(is.na(exp_data))){
+    exp_data<-exp_data[-which(is.na(exp_data))]
+    dpa<-dpa[-which(is.na(exp_data))]
+  }
   merg_data<-as.data.frame(cbind(dpa,exp_data,fit_data))
   melt_data<-reshape2::melt(merg_data[,c("dpa","sol1","sol2","sol3","sol4")],id.vars="dpa")
-  
   g<-ggplot(data = merg_data,aes(x=dpa))+geom_point(aes(y=exp_data))+theme+xlab("Time (DPA)")+ylab("Protein concentration normalized by mean (fmol gFW)")+geom_line(data = melt_data,aes(x=dpa,y=value,group=variable))+ggtitle(title)
   return(g)
 }

@@ -29,7 +29,6 @@ function(input, output, session) {
       mrna_data<-list_data$mrna
       prot_data<-list_data$prot
       test_list<<-list_data$parse
-      test_list<<-sample(test_list,100)
       clean_mrna_data<<-mrna_data[,-which(is.na(as.numeric(as.character(colnames(mrna_data)))))]
       clean_prot_data<<-prot_data[,-which(is.na(as.numeric(as.character(colnames(prot_data)))))]
       output$select_pair<-renderUI({
@@ -145,14 +144,14 @@ function(input, output, session) {
       
       clusterExport(cl1,c("coefs_poids","formula_poids","ksmin","fitR","fitWe","poids_coef"))
       run_calc$run<-TRUE
-      if(Sys.info()["sysname"]=="Windows"){
-        num_cor<-cl1
-      }
-      if(Sys.info()["sysname"]=="Linux"){
-        num_cor<-detectCores()-1
-      }
-    res_list<-pblapply(X=test_list,function(el){
-      print(el[["Transcrit_ID"]])
+      # if(Sys.info()["sysname"]=="Windows"){
+      #   num_cor<-cl1
+      # }
+      # if(Sys.info()["sysname"]=="Linux"){
+      #   num_cor<-cl1
+      # }
+    res_list<-parLapply(X=test_list,function(el){
+      # print(el[["Transcrit_ID"]])
         tryCatch({
           bound_ks<-c(4.5e-3*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T),1440*mean(el$Transcrit_val,na.rm = T)/mean(el$Protein_val,na.rm = T))
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
@@ -163,9 +162,9 @@ function(input, output, session) {
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
           par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
           el$SOL<-par_k
-          return(el)
-        },error=function(e){showNotification(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "),type = "error",duration = NULL)})
-      },cl=num_cor)
+          el
+        },error=function(e){print(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "))})
+      },cl=cl1)
       stopCluster(cl1)
       valid_res<<-Filter(function(x) {length(x) > 6}, res_list)
       mess<-showNotification(paste("Finished!!"),duration = NULL,type = "message")
