@@ -1,5 +1,5 @@
 # Load packages and data -----------------------------------------------------------
-setwd("E:/Stage M2/Analyse_stats/Proteo/")
+setwd("D:/Stage M2/Stage_M2/Stat_R_files/Proteo/")
 
 # setwd("/media/juanma/JUANMA/Stage M2/Analyse_stats/Proteo")
 load("kiwi_juan_Conc(fmolgFW)_index_correc_sansUPS_nouvelle_tableMW.RData")
