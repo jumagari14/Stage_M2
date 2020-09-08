@@ -1,7 +1,6 @@
 library(getopt,quietly=TRUE, warn.conflicts=FALSE)
 args <- commandArgs(trailingOnly=TRUE)
 spec <- matrix(c(
-  "workDir", "o", 1, "character",
   "mainFile","f",1, "character",
   "weightFile","w",1, "character",
   "finalFile","a",1,"character",
@@ -9,12 +8,12 @@ spec <- matrix(c(
   byrow=TRUE, ncol=4)
 opt <- getopt(spec)
 print(opt$workDir)
-setwd(opt$workDir)
+setwd("./")
 source("../model/global.r")
 
 # test_data<-lista[[30]]
 poids_kiwi<-read_csv(opt$weightFile,col_names=c("t","y"))
-test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcrits",prot_sheet = "Proteines",F)
+test_data<-loadData(data = opt$mainFile,trans_sheet = "Transcripts",prot_sheet = "Proteins",F)
 test_list<-test_data$parse
 days_kiwi<-test_list[[1]][["DPA"]]
 fitWe<<-"double_sig"
@@ -79,9 +78,9 @@ del_results<-Filter(function(x) {length(x) == 0}, res_list)
 final_table<-rbindlist(valid_res)
 
 for (el in all_data){
-  print(el[["plot_mrna"]])
-  print(el[["SOL"]][["plot_fit_prot"]])
-  print(el[["SOL"]][["confEllipsePlot"]])
+  el[["plot_mrna"]]
+  el[["SOL"]][["plot_fit_prot"]]
+  el[["SOL"]][["confEllipsePlot"]]
 }
 write.csv(final_table,opt$finalFile)
 

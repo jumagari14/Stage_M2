@@ -1,6 +1,6 @@
 # Load packages -----------------------------------------------------------
-setwd("E:/Stage M2/Analyse_stats")
-# setwd("/media/juanma/JUANMA/Stage M2/Analyse_stats/")
+setwd("D:/Stage M2/Stage_M2/Stat_R_files")
+# setwd("/media/juanma/JUANMA/Stage M2/Stat_R_files/")
 library("readxl")
 library("gplots")
 library("reshape2")

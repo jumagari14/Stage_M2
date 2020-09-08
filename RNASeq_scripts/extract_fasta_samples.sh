@@ -1,13 +1,13 @@
 #!/bin/bash
 
-lines=$(($1*$2))
+lines=$1
 
 
 currentD=$(readlink -f $3)
 
 mkdir -p -m 755 "$currentD"/test_data
 
-list=$(find $currentD -name "*.fastq.*")
+list=$(find $currentD -regex ".*\(fasta\|fastq\)*")
 
 for i in $list 
 do 

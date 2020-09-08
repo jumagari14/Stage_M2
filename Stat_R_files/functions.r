@@ -258,9 +258,9 @@ medianAnno_prot<-function(anno_data,datafruit,days_kiwi,title){
   merged<-aggregate(merged_data$value,by=list(merged_data$Stage,merged_data$Definition),function(x) median(x,na.rm = T))
   colnames(merged)<-c("Stage","Definition","Median")
   merged<-merged[-which(merged$Definition=="not assigned"),]
-  ggplot(merged, aes(fill=factor(paste(Stage,"DPA",sep=" "),levels = days_kiwi), y=Median, x=Definition)) +
-    geom_bar(position="dodge", stat="identity")+theme(axis.text.x = element_text(angle = 45, hjust = 1,color = "black"),panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))+ylab("Median protein concentration (fmolgFW^1)")+
-    xlab("")+ggtitle(title)+guides(fill=guide_legend(title="Stage"))
+  return(ggplot(merged, aes(fill=factor(paste(Stage,"DPA",sep=" "),levels = days_kiwi), y=Median, x=Definition)) +
+    geom_bar(position="dodge", stat="identity")+theme(axis.text.x = element_text(angle = 45, hjust = 1,color = "black"),panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))+ylab(expression("Median protein concentration " (fmolgFW^-1)))+
+    xlab("")+ggtitle(title)+guides(fill=guide_legend(title="Stage")))
 }
 
 medianAnno_trans<-function(anno_data,datafruit,days_pca,title){
@@ -275,8 +275,9 @@ medianAnno_trans<-function(anno_data,datafruit,days_pca,title){
   merged_data<-merge(melt_conc,a)
   merged<-aggregate(merged_data$value,by=list(merged_data$Stage,merged_data$Definition),median)
   colnames(merged)<-c("Stage","Definition","Median")
+  merged<-merged[-which(merged$Definition=="not assigned"),]
   p<-ggplot(merged, aes(fill=Stage, y=Median, x=Definition)) +
-    geom_bar(position="dodge", stat="identity")+theme(axis.text.x = element_text(angle = 45, hjust = 1,color = "black"),panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))+ylab("Median mRNA concentration (fmol·gFW^-1)")+
+    geom_bar(position="dodge", stat="identity")+theme(axis.text.x = element_text(angle = 45, hjust = 1,color = "black"),panel.background = element_blank(),panel.border=element_rect(fill=NA),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.background=element_blank(),axis.text.y=element_text(colour="black"),axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))+ylab(expression("Median mRNA concentration " (fmolgFW^-1)))+
     xlab("")+ggtitle(title)+guides(fill=guide_legend(title="Stage"))
-  print(p)
+  return(p)
 }
