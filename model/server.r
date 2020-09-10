@@ -163,7 +163,7 @@ function(input, output, session) {
           par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
           el$SOL<-par_k
           el
-        },error=function(e){print(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=" "))})
+        },error=function(e){print(paste0("Protein fitting not achieved for ",el$Transcrit_ID,sep=""))})
       },cl=cl1)
       stopCluster(cl1)
       valid_res<<-Filter(function(x) {length(x) > 6}, res_list)
