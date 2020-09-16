@@ -157,7 +157,7 @@ function(input, output, session) {
           norm_data<-normaMean(el$Protein_val,el$Transcrit_val,ksmin)
           fittedmrna<<-fit_testRNA(el$DPA,norm_data$mrna,fitR)
           el$errorMrna<-fittedmrna$error
-          el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR),"")
+          el$plot_mrna<-plotFitmRNA(el$DPA,norm_data$mrna,solmRNA(el$DPA,fittedmrna$coefs,fitR),el[["Transcrit_ID"]])
           el$errorWeight<-coefs_poids$error
           par_k<-solgss_Borne(el$DPA,as.vector(norm_data$prot),as.numeric(norm_data$ks),bound_ks,"LM")
           par_k[["plot_fit_prot"]]<-plotFitProt(el$DPA,as.vector(norm_data$prot),par_k$prot_fit,"")
@@ -176,7 +176,8 @@ function(input, output, session) {
             downloadButton("downFile","Download data table"),
             selectInput("res_trans","Select mRNA ID",choices = names_trans),
             textInput("err_th","Select error threshold",value=0.3),
-            downloadButton("validTable","Download valid table")
+            div(style="display:inline-block",downloadButton("validTable","Download valid table")),
+            div(style="display:inline-block",downloadButton("pdfFile","Download figures"))
           ),
           mainPanel(resultsKsKdUI("res_trans"))
         ))
@@ -212,6 +213,20 @@ function(input, output, session) {
           write.csv(final_table,file)
         },contentType = "text/csv"
         
+      )
+      output$pdfFile<-downloadHandler(
+        filename = function(){
+          paste("Figures-",Sys.Date(),".pdf",sep="")
+        },
+        content=function(file){
+          pdf(file)
+          for (el in valid_res){
+            print(el[["plot_mrna"]])
+            print(el[["SOL"]][["plot_fit_prot"]])
+            print(el[["SOL"]][["confEllipsePlot"]])
+          }
+          dev.off()
+        }
       )
       
       
