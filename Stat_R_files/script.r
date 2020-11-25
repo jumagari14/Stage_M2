@@ -13,7 +13,7 @@ library(ggrepel)
 source("functions.r")
 
 # Load Data ---------------------------------------------------------------
-donnees_kiwi<-getData("Conc_Red5.csv",",")
+donnees_kiwi<-getData("Conc_cucumber.csv",",")
 days_kiwi<-rep(c("0 DPA", "13 DPA", "26 DPA", "39 DPA", "55 DPA", "76 DPA", "118 DPA", "179 DPA", "222 DPA"), each = 3)
 
 kiwi_data<-donnees_kiwi$format2

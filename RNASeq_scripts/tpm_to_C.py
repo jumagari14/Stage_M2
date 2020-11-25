@@ -52,7 +52,7 @@ path_file1=pd.ExcelFile("./dataKentaro/samples concentration.xlsx")
 fruit_data=pd.read_excel(path_file1,args.fruit)
 
 
-fw_ind="Weigth for extraction"  #Column where weight of sample are found
+fw_ind="Weight for extraction"  #Column where weight of sample are found
 
 spike_mol={'M8': [[2.574E-5,1.901E-4,1.259E-3,1.043E-2,9.931E-2,8.108E-1,5.132,37.44],[9.975e-06, 7.304e-05, 0.0004923999999999999, 0.004072, 0.03801, 0.3144, 1.99, 14.540000000000001],[1.022e-05, 7.508e-05, 0.0005027, 0.0041600000000000005, 0.03937, 0.3221, 2.04, 14.89]], 
 'M5': [[5.148e-05, 0.0003802, 0.002518, 0.02086, 73.46, 0.08108, 0.687, 3.7809999999999997],[1.995e-05, 0.0001461, 0.0009847999999999999, 0.008144, 28.12, 0.031439999999999996, 0.2664, 1.468],[7.661e-06, 7.633e-05, 0.0008072, 0.008157999999999999, 29.12, 0.032209999999999996, 0.2731, 1.503]],
@@ -75,12 +75,12 @@ for root,dirs,files in os.walk(dirpath):
                 os.makedirs(new_direc+"/"+direc)
     if len(files)!=0:  
         cont=cont+1
-        iden=root.split("/")[2].split("_")[0] ## Sample identifier found at the end of the subdirectory name, separated by "_" 
+        iden=root.split("/")[2].split("_")[1] ## Sample identifier found at the end of the subdirectory name, separated by "_" 
         mix_n=list(fruit_data.loc[fruit_data["Sample"]==float(iden),"Mix"])[0]  
         fw= list(fruit_data.loc[fruit_data["Sample"]==float(iden),fw_ind])[0] 
         print(iden)
         for f in files: 
-            if "isoform" in f: 
+            if "genes" in f: 
                 filepath=os.path.join(root,f)
                 mol_values=spike_mol[mix_n]
                 print(cont%3)

@@ -17,7 +17,7 @@ def getTPM(filepath, filename,folder,count_file):
     count_data["TPM"]=(count_data["Norm"]/sum_norm)*10**6
     TPM_data=pd.DataFrame(data={"tracking_id": count_data["tracking_id"], "TPM": count_data["TPM"]})
     header=filename.split(".")[0]
-    path=filepath.rsplit("/",2)[1].replace("FPKM","/tpm")
+    path=filepath.rsplit("/",2)[1]
     TPM_data.to_csv(folder+"/"+path+"/"+header+"_TPM.csv",mode="w",index=False)
     #TPM_data.to_csv
 
@@ -35,7 +35,7 @@ import re
 # parser.add_argument('-d', action='store', dest='pathdir', type=str, help='Path to directory where gene and isoform measurements are stored in one folder per each sample')
 # args=parser.parse_args()
 
-dirpath="Red5Kiwi/fpkm/"
+dirpath="Conc/fpkm/"
 
 new_direc=dirpath.split("/")[0]+"/tpm"
 print(new_direc)
@@ -43,15 +43,15 @@ if os.path.isdir(new_direc)==False:
     os.makedirs(new_direc)
 for root,dirs,files in os.walk(dirpath): 
     for direc in dirs: 
-        if os.path.isdir(new_direc+direc)==False: 
+        if os.path.isdir(new_direc+"/"+direc)==False: 
             os.makedirs(new_direc+"/"+direc)
     if (root[len(dirpath):].count(os.sep)<3 and root[len(dirpath):]!=""):
         print(root[len(dirpath):])
-        count_filename=root[len(dirpath):].replace("FPKM_","HTSeq_") 
-        count_file=dirpath.split("/")[0]+"/readCount/HTSeq_"+count_filename+".txt"  
+        count_filename=root[len(dirpath):].replace("FPKM_","readCount-") 
+        count_file=dirpath.split("/")[0]+"/readCount/"+count_filename+".txt"  
         print(count_file)
         for f in files: 
-            if (f=="isoforms.fpkm_tracking"): 
+            if (f=="genes.fpkm_tracking"): 
                 filepath=os.path.join(root,f)
                 getTPM(filepath,f,new_direc,count_file)
 
