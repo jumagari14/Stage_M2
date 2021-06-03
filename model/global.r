@@ -116,9 +116,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 100),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 1))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -5000, max = 5000,value = c(0,5000)))))
     })
   }
   if (method=="double_sig"){
@@ -133,13 +133,13 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par6_sig"),"Enter value of f",value = 0.042),
                                    textInput(ns("par7_sig"),"Enter value of g",value = 90))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = -200, max = 200,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_d"), "Upper and lower bounds of d",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_e"), "Upper and lower bounds of e",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_f"), "Upper and lower bounds of f",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_g"), "Upper and lower bounds of g",min = -5000, max = 5000,value = c(0,5000)))))
     })
   }
   if (method=="empirique"){
@@ -150,9 +150,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 8),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 7))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -5000, max = 5000,value = c(0,5000)))))
       
     })
   }
@@ -164,9 +164,9 @@ paramList<-function(input,output,session,method){
                                    textInput(ns("par2_sig"),"Enter value of b",value = 114.39),
                                    textInput(ns("par3_sig"),"Enter value of c",value = 0.52))),
                   tabPanel("Boundaries",
-                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -200, max = 200,value = c(0,200)),
-                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -200, max = 200,value = c(0,200)))))
+                           tagList(sliderInput(ns("bound_a"), "Upper and lower bounds of a",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_b"), "Upper and lower bounds of b",min = -5000, max = 5000,value = c(0,5000)),
+                                   sliderInput(ns("bound_c"), "Upper and lower bounds of c",min = -5000, max = 5000,value = c(0,5000)))))
       
     })
   }
